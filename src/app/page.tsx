@@ -29,10 +29,10 @@ const panelClass =
 const inputClass =
   "w-full rounded-xl border border-zinc-200 bg-white/90 px-3 py-2.5 text-sm text-zinc-800 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:border-zinc-700 dark:bg-zinc-950/80 dark:text-zinc-100 dark:focus:border-blue-500 dark:focus:ring-blue-900/60";
 const typeBadgeClass: Record<string, string> = {
-  push: "bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200",
-  pull: "bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200",
-  legs: "bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200",
-  cardio: "bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200",
+  push: "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300",
+  pull: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300",
+  legs: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
+  cardio: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
   other: "bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200",
 };
 
@@ -333,7 +333,7 @@ export default function Home() {
         </div>
       </header>
 
-      <section className={panelClass}>
+      <section className={`${panelClass} bg-gradient-to-r from-white/80 to-sky-50/70 dark:from-zinc-950/60 dark:to-sky-950/10`}>
         <div className="flex flex-wrap items-center gap-2">
           {TABS.map((tab) => (
             <button
@@ -356,13 +356,13 @@ export default function Home() {
       </section>
 
       {message ? (
-        <section className={panelClass}>
+        <section className={`${panelClass} border-emerald-200/80 bg-gradient-to-r from-emerald-50/80 to-white dark:border-emerald-900/40 dark:from-emerald-950/20 dark:to-zinc-950/40`}>
           <p className="text-sm text-emerald-600 dark:text-emerald-400">{message}</p>
         </section>
       ) : null}
 
       {(activeTab === "Dashboard" || activeTab === "Planning") && (
-        <section key={`planning-${activeTab}`} className={`${panelClass} animate-fade-slide`}>
+        <section key={`planning-${activeTab}`} className={`${panelClass} animate-fade-slide bg-gradient-to-b from-sky-50/75 to-white dark:from-sky-950/10 dark:to-zinc-950/50`}>
           <div className="flex flex-wrap items-center justify-between gap-3">
             {title("Planning Hebdomadaire")}
             <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
@@ -385,7 +385,7 @@ export default function Home() {
               </select>
               <input className={inputClass} type="number" placeholder="Sets" value={workoutForm.sets ?? 3} onChange={(e) => setWorkoutForm((curr) => ({ ...normalizeWorkoutForm(curr), sets: Number(e.target.value) }))} />
               <input className={inputClass} type="number" placeholder="Reps" value={workoutForm.reps ?? 10} onChange={(e) => setWorkoutForm((curr) => ({ ...normalizeWorkoutForm(curr), reps: Number(e.target.value) }))} />
-              <button onClick={addWorkout} className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">Ajouter</button>
+              <button onClick={addWorkout} className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:brightness-110">Ajouter</button>
             </div>
           ) : null}
           <div className="mt-5 rounded-2xl border border-zinc-200/80 bg-white/60 p-2 dark:border-zinc-800 dark:bg-zinc-950/40">
@@ -432,13 +432,13 @@ export default function Home() {
 
       {(activeTab === "Dashboard" || activeTab === "Poids") && (
         <section key={`poids-${activeTab}`} className="grid animate-fade-slide gap-4 md:grid-cols-2">
-          <article className={panelClass}>
+          <article className={`${panelClass} bg-gradient-to-b from-emerald-50/70 to-white dark:from-emerald-950/10 dark:to-zinc-950/50`}>
             {title("Notes de Poids")}
             {canEdit ? (
               <div className="mt-3 grid gap-2 md:grid-cols-3">
                 <input className={inputClass} type="date" value={weightForm.date} onChange={(e) => setWeightForm((curr) => ({ ...curr, date: e.target.value }))} />
                 <input className={inputClass} type="number" step="0.1" value={weightForm.weight_kg} onChange={(e) => setWeightForm((curr) => ({ ...curr, weight_kg: Number(e.target.value) }))} />
-                <button onClick={addWeight} className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">Ajouter</button>
+                <button onClick={addWeight} className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:brightness-110">Ajouter</button>
                 <input className={`${inputClass} md:col-span-3`} placeholder="Note optionnelle" value={weightForm.note} onChange={(e) => setWeightForm((curr) => ({ ...curr, note: e.target.value }))} />
               </div>
             ) : null}
@@ -459,7 +459,7 @@ export default function Home() {
       {(activeTab === "Dashboard" || activeTab === "PR" || activeTab === "Mensurations") && (
         <section key={`stats-${activeTab}`} className="grid animate-fade-slide gap-4 md:grid-cols-2">
           {(activeTab === "Dashboard" || activeTab === "PR") && (
-            <article className={panelClass}>
+            <article className={`${panelClass} bg-gradient-to-b from-violet-50/75 to-white dark:from-violet-950/10 dark:to-zinc-950/50`}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 {title("Records Personnels")}
                 <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-semibold text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">
@@ -472,7 +472,7 @@ export default function Home() {
                   <input className={inputClass} type="number" value={prForm.value} onChange={(e) => setPrForm((curr) => ({ ...curr, value: Number(e.target.value) }))} />
                   <input className={inputClass} placeholder="Unité (kg/reps)" value={prForm.unit} onChange={(e) => setPrForm((curr) => ({ ...curr, unit: e.target.value }))} />
                   <input className={inputClass} type="date" value={prForm.achieved_on} onChange={(e) => setPrForm((curr) => ({ ...curr, achieved_on: e.target.value }))} />
-                  <button onClick={addPr} className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 dark:bg-zinc-100 dark:text-zinc-900 md:col-span-2">Ajouter PR</button>
+                  <button onClick={addPr} className="rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110 md:col-span-2">Ajouter PR</button>
                 </div>
               ) : null}
               <div className="mt-4 space-y-2">
@@ -483,12 +483,12 @@ export default function Home() {
                         <p className="font-semibold text-zinc-800 dark:text-zinc-100">{record.exercise}</p>
                         <p className="text-zinc-500">Atteint le {formatDateJJMMYYYY(record.achieved_on)}</p>
                       </div>
-                      <span className="rounded-full bg-zinc-900 px-2.5 py-1 text-xs font-bold text-white dark:bg-zinc-100 dark:text-zinc-900">
+                      <span className="rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 px-2.5 py-1 text-xs font-bold text-white">
                         #{idx + 1}
                       </span>
                     </div>
                     <div className="mt-2 flex items-center justify-between">
-                      <p className="text-base font-bold text-zinc-900 dark:text-zinc-100">
+                      <p className="text-base font-bold text-violet-700 dark:text-violet-300">
                         {record.value} {record.unit}
                       </p>
                       {canEdit ? (
@@ -503,7 +503,7 @@ export default function Home() {
             </article>
           )}
           {(activeTab === "Dashboard" || activeTab === "Mensurations") && (
-            <article className={panelClass}>
+            <article className={`${panelClass} bg-gradient-to-b from-amber-50/70 to-white dark:from-amber-950/10 dark:to-zinc-950/50`}>
               {title("Mensurations")}
               {canEdit ? (
                 <div className="mt-3 grid gap-2 md:grid-cols-2">
@@ -512,7 +512,7 @@ export default function Home() {
                   <input className={inputClass} type="number" step="0.1" placeholder="Taille (cm)" value={measurementForm.waist_cm} onChange={(e) => setMeasurementForm((curr) => ({ ...curr, waist_cm: e.target.value }))} />
                   <input className={inputClass} type="number" step="0.1" placeholder="Poitrine (cm)" value={measurementForm.chest_cm} onChange={(e) => setMeasurementForm((curr) => ({ ...curr, chest_cm: e.target.value }))} />
                   <input className={inputClass} type="number" step="0.1" placeholder="Cuisse (cm)" value={measurementForm.thigh_cm} onChange={(e) => setMeasurementForm((curr) => ({ ...curr, thigh_cm: e.target.value }))} />
-                  <button onClick={addMeasurement} className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900 md:col-span-2">Ajouter</button>
+                  <button onClick={addMeasurement} className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110 md:col-span-2">Ajouter</button>
                 </div>
               ) : null}
               <div className="mt-4 space-y-2">
