@@ -278,7 +278,11 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="relative">
+          <div
+            className={`relative transition-all duration-300 ${
+              isScrolled ? "max-h-0 opacity-0 overflow-hidden pointer-events-none" : "max-h-40 opacity-100"
+            }`}
+          >
             {isAdmin ? (
               <div className="flex items-center gap-2">
                 <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
@@ -385,9 +389,9 @@ export default function Home() {
             </div>
           ) : null}
           <div className="mt-5 rounded-2xl border border-zinc-200/80 bg-white/60 p-2 dark:border-zinc-800 dark:bg-zinc-950/40">
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-7">
+            <div className="grid grid-flow-col auto-cols-[80vw] gap-3 overflow-x-auto pb-2 snap-x snap-mandatory md:grid-flow-row md:auto-cols-auto md:overflow-x-visible md:pb-0 md:snap-none md:grid-cols-2 xl:grid-cols-7">
             {DAYS.map((day, i) => (
-              <div key={day} className="group min-h-64 rounded-xl border border-zinc-200/90 bg-white p-2 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/60">
+              <div key={day} className="group min-h-64 snap-start rounded-xl border border-zinc-200/90 bg-white p-2 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/60">
                 <div className="sticky top-2 z-10 mb-2 flex items-center justify-between rounded-lg bg-zinc-100/90 px-2 py-1 dark:bg-zinc-900/90">
                   <h3 className="text-xs font-bold uppercase tracking-wide text-zinc-600 dark:text-zinc-300">{day}</h3>
                   <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-300">
