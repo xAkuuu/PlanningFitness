@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Planning Fitness - Web App Full-stack
 
-## Getting Started
+Application responsive de suivi musculation (desktop/mobile) avec :
 
-First, run the development server:
+- authentification email/mot de passe (Supabase Auth),
+- persistance de session (JWT géré par Supabase),
+- dashboard planning hebdomadaire (7 jours),
+- suivi poids / PR / mensurations,
+- mode visiteur (lecture seule) vs mode admin (CRUD),
+- indicateurs motivation (volume hebdo + streak),
+- dark mode auto (préférence système),
+- cache offline localStorage.
+
+## Stack
+
+- Next.js (App Router) + TypeScript
+- Tailwind CSS
+- Supabase (Auth + PostgreSQL + RLS)
+- Chart.js (`react-chartjs-2`) pour la courbe de progression
+
+## 1) Lancer le projet
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Puis ouvrir [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 2) Configurer Supabase
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Crée un projet sur [Supabase](https://supabase.com/).
+2. Récupère `Project URL` + `anon public key` dans **Project Settings > API**.
+3. Copie `.env.example` en `.env.local` puis renseigne :
 
-## Learn More
+```bash
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+```
 
-To learn more about Next.js, take a look at the following resources:
+4. Va dans **SQL Editor** et exécute le contenu de `supabase/schema.sql`.
+5. Dans **Authentication > Providers**, active `Email` (password).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 3) Modèle de données
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Tables créées :
 
-## Deploy on Vercel
+- `workout_sessions` : planning 7 jours
+- `weight_logs` : suivi de poids
+- `personal_records` : records personnels
+- `measurements` : mensurations
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Chaque table utilise `user_id` lié à `auth.users` et des politiques RLS pour isoler les données par utilisateur.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 4) Mode Admin vs Visiteur
+
+- **Visiteur (non connecté)** : consultation uniquement.
+- **Admin (connecté)** : peut ajouter/supprimer toutes ses entrées.
+
+## 5) Offline cache
+
+Les données chargées sont mises en cache en localStorage :
+
+- `fitness_workouts_cache`
+- `fitness_weights_cache`
+- `fitness_prs_cache`
+- `fitness_measurements_cache`
+
+Si la connexion est instable, l'utilisateur peut toujours consulter les dernières données synchronisées.
