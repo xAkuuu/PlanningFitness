@@ -25,15 +25,15 @@ const initialMeasurement = { date: "", biceps_cm: "", waist_cm: "", chest_cm: ""
 const PUBLIC_USER = "public-demo";
 
 const panelClass =
-  "rounded-3xl border border-white/60 bg-white/75 p-5 shadow-[0_20px_35px_rgba(13,25,43,0.08)] backdrop-blur-xl dark:border-zinc-700/60 dark:bg-zinc-900/70";
+  "rounded-3xl border border-zinc-200/70 bg-white/70 p-5 shadow-[0_18px_36px_rgba(0,0,0,0.08)] backdrop-blur-xl dark:border-zinc-800/70 dark:bg-zinc-950/55";
 const inputClass =
   "w-full rounded-xl border border-zinc-200 bg-white/90 px-3 py-2.5 text-sm text-zinc-800 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:border-zinc-700 dark:bg-zinc-950/80 dark:text-zinc-100 dark:focus:border-blue-500 dark:focus:ring-blue-900/60";
 const typeBadgeClass: Record<string, string> = {
-  push: "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300",
-  pull: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300",
-  legs: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
-  cardio: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
-  other: "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
+  push: "bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200",
+  pull: "bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200",
+  legs: "bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200",
+  cardio: "bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200",
+  other: "bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200",
 };
 
 const publicWorkouts: WorkoutSession[] = [
@@ -69,6 +69,12 @@ function readCache<T>(key: string): T[] {
 
 function title(label: string) {
   return <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">{label}</h2>;
+}
+
+function formatDateJJMMYYYY(input: string) {
+  const [year, month, day] = input.split("-");
+  if (!year || !month || !day) return input;
+  return `${day}//${month}//${year}`;
 }
 
 function normalizeWorkoutForm(
@@ -290,7 +296,7 @@ export default function Home() {
                   Connexion
                 </button>
                 <div
-                  className={`absolute right-0 top-12 w-80 space-y-2 rounded-2xl border border-zinc-200 bg-white p-3 shadow-xl transition-all duration-200 dark:border-zinc-700 dark:bg-zinc-900 ${
+                  className={`fixed inset-x-4 top-24 z-50 w-auto space-y-2 rounded-2xl border border-zinc-200 bg-white p-3 shadow-xl transition-all duration-200 dark:border-zinc-700 dark:bg-zinc-900 sm:absolute sm:inset-x-auto sm:top-12 sm:right-0 sm:w-80 ${
                     showAuthMenu
                       ? "visible translate-y-0 opacity-100"
                       : "invisible -translate-y-1 opacity-0 pointer-events-none"
@@ -367,7 +373,7 @@ export default function Home() {
               </select>
               <input className={inputClass} type="number" placeholder="Sets" value={workoutForm.sets ?? 3} onChange={(e) => setWorkoutForm((curr) => ({ ...normalizeWorkoutForm(curr), sets: Number(e.target.value) }))} />
               <input className={inputClass} type="number" placeholder="Reps" value={workoutForm.reps ?? 10} onChange={(e) => setWorkoutForm((curr) => ({ ...normalizeWorkoutForm(curr), reps: Number(e.target.value) }))} />
-              <button onClick={addWorkout} className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white">Ajouter</button>
+              <button onClick={addWorkout} className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">Ajouter</button>
             </div>
           ) : null}
           <div className="mt-5 rounded-2xl border border-zinc-200/80 bg-white/60 p-2 dark:border-zinc-800 dark:bg-zinc-950/40">
@@ -385,17 +391,17 @@ export default function Home() {
                     .filter((w) => w.day_of_week === i + 1)
                     .sort((a, b) => (a.session_time ?? "99:99").localeCompare(b.session_time ?? "99:99"))
                     .map((w) => (
-                    <li key={w.id} className="relative rounded-lg border border-blue-200 bg-gradient-to-b from-blue-50 to-indigo-50 p-2 pl-4 text-xs dark:border-blue-900/40 dark:from-blue-950/30 dark:to-indigo-950/30">
-                      <span className="absolute left-1.5 top-2.5 h-2 w-2 rounded-full bg-blue-500" />
+                    <li key={w.id} className="relative rounded-lg border border-zinc-200 bg-white/90 p-2 pl-4 text-xs shadow-sm dark:border-zinc-800 dark:bg-zinc-950/50">
+                      <span className="absolute left-1.5 top-2.5 h-2 w-2 rounded-full bg-zinc-900 dark:bg-zinc-100" />
                       <div className="mb-1 flex items-center justify-between gap-2">
                         <p className="font-semibold text-zinc-800 dark:text-zinc-100">{w.exercise}</p>
                         <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${typeBadgeClass[w.workout_type ?? "other"]}`}>
                           {w.workout_type ?? "other"}
                         </span>
                       </div>
-                      <p className="text-[11px] font-semibold text-blue-700 dark:text-blue-300">{w.session_time ?? "Sans heure"}</p>
+                      <p className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-200">{w.session_time ?? "Sans heure"}</p>
                       <p className="text-zinc-600 dark:text-zinc-300">{w.sets} x {w.reps}</p>
-                      <p className="text-[10px] font-medium uppercase tracking-wide text-blue-700 dark:text-blue-300">{w.status}</p>
+                      <p className="text-[10px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{w.status}</p>
                       {canEdit ? <button onClick={() => removeItem("workout_sessions", w.id)} className="mt-1 text-rose-600">Supprimer</button> : null}
                     </li>
                   ))}
@@ -420,14 +426,14 @@ export default function Home() {
               <div className="mt-3 grid gap-2 md:grid-cols-3">
                 <input className={inputClass} type="date" value={weightForm.date} onChange={(e) => setWeightForm((curr) => ({ ...curr, date: e.target.value }))} />
                 <input className={inputClass} type="number" step="0.1" value={weightForm.weight_kg} onChange={(e) => setWeightForm((curr) => ({ ...curr, weight_kg: Number(e.target.value) }))} />
-                <button onClick={addWeight} className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white">Ajouter</button>
+                <button onClick={addWeight} className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">Ajouter</button>
                 <input className={`${inputClass} md:col-span-3`} placeholder="Note optionnelle" value={weightForm.note} onChange={(e) => setWeightForm((curr) => ({ ...curr, note: e.target.value }))} />
               </div>
             ) : null}
             <div className="mt-4 space-y-2">
               {displayWeights.map((entry) => (
                 <div key={entry.id} className="rounded-xl border border-zinc-200 bg-white/70 p-3 text-sm dark:border-zinc-800 dark:bg-zinc-950/50">
-                  <p className="font-medium">{entry.date} - {entry.weight_kg} kg</p>
+                  <p className="font-medium">{formatDateJJMMYYYY(entry.date)} - {entry.weight_kg} kg</p>
                   <p className="text-zinc-500">{entry.note || "Sans note"}</p>
                   {canEdit ? <button onClick={() => removeItem("weight_logs", entry.id)} className="text-xs text-rose-600">Supprimer</button> : null}
                 </div>
@@ -454,23 +460,23 @@ export default function Home() {
                   <input className={inputClass} type="number" value={prForm.value} onChange={(e) => setPrForm((curr) => ({ ...curr, value: Number(e.target.value) }))} />
                   <input className={inputClass} placeholder="Unité (kg/reps)" value={prForm.unit} onChange={(e) => setPrForm((curr) => ({ ...curr, unit: e.target.value }))} />
                   <input className={inputClass} type="date" value={prForm.achieved_on} onChange={(e) => setPrForm((curr) => ({ ...curr, achieved_on: e.target.value }))} />
-                  <button onClick={addPr} className="rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-500 md:col-span-2">Ajouter PR</button>
+                  <button onClick={addPr} className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 dark:bg-zinc-100 dark:text-zinc-900 md:col-span-2">Ajouter PR</button>
                 </div>
               ) : null}
               <div className="mt-4 space-y-2">
                 {displayPrs.map((record, idx) => (
-                  <div key={record.id} className="rounded-2xl border border-violet-100/90 bg-gradient-to-r from-violet-50/70 to-white p-3 text-sm shadow-sm dark:border-violet-900/40 dark:from-violet-950/20 dark:to-zinc-950/40">
+                  <div key={record.id} className="rounded-2xl border border-zinc-200 bg-white/80 p-3 text-sm shadow-sm dark:border-zinc-800 dark:bg-zinc-950/50">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="font-semibold text-zinc-800 dark:text-zinc-100">{record.exercise}</p>
-                        <p className="text-zinc-500">Atteint le {record.achieved_on}</p>
+                        <p className="text-zinc-500">Atteint le {formatDateJJMMYYYY(record.achieved_on)}</p>
                       </div>
-                      <span className="rounded-full bg-violet-600 px-2.5 py-1 text-xs font-bold text-white">
+                      <span className="rounded-full bg-zinc-900 px-2.5 py-1 text-xs font-bold text-white dark:bg-zinc-100 dark:text-zinc-900">
                         #{idx + 1}
                       </span>
                     </div>
                     <div className="mt-2 flex items-center justify-between">
-                      <p className="text-base font-bold text-violet-700 dark:text-violet-300">
+                      <p className="text-base font-bold text-zinc-900 dark:text-zinc-100">
                         {record.value} {record.unit}
                       </p>
                       {canEdit ? (
@@ -494,13 +500,13 @@ export default function Home() {
                   <input className={inputClass} type="number" step="0.1" placeholder="Taille (cm)" value={measurementForm.waist_cm} onChange={(e) => setMeasurementForm((curr) => ({ ...curr, waist_cm: e.target.value }))} />
                   <input className={inputClass} type="number" step="0.1" placeholder="Poitrine (cm)" value={measurementForm.chest_cm} onChange={(e) => setMeasurementForm((curr) => ({ ...curr, chest_cm: e.target.value }))} />
                   <input className={inputClass} type="number" step="0.1" placeholder="Cuisse (cm)" value={measurementForm.thigh_cm} onChange={(e) => setMeasurementForm((curr) => ({ ...curr, thigh_cm: e.target.value }))} />
-                  <button onClick={addMeasurement} className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white md:col-span-2">Ajouter</button>
+                  <button onClick={addMeasurement} className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900 md:col-span-2">Ajouter</button>
                 </div>
               ) : null}
               <div className="mt-4 space-y-2">
                 {displayMeasurements.map((item) => (
                   <div key={item.id} className="rounded-xl border border-zinc-200 bg-white/70 p-3 text-sm dark:border-zinc-800 dark:bg-zinc-950/50">
-                    <p className="font-medium">{item.date}</p>
+                    <p className="font-medium">{formatDateJJMMYYYY(item.date)}</p>
                     <p className="text-zinc-500">Bras: {item.biceps_cm ?? "-"} cm | Taille: {item.waist_cm ?? "-"} cm | Poitrine: {item.chest_cm ?? "-"} cm | Cuisse: {item.thigh_cm ?? "-"} cm</p>
                     {canEdit ? <button onClick={() => removeItem("measurements", item.id)} className="text-xs text-rose-600">Supprimer</button> : null}
                   </div>

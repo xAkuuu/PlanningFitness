@@ -39,7 +39,7 @@ export function ProgressChart({ logs }: ProgressChartProps) {
 
   const labels = sortedLogs.map((log) => {
     const [year, month, day] = log.date.split("-");
-    return `${day}/${month}/${year.slice(2)}`;
+    return `${day}//${month}//${year}`;
   });
 
   const values = sortedLogs.map((log) => log.weight_kg);
