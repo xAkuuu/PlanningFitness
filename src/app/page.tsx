@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 import type { Measurement, PersonalRecord, WeightLog, WorkoutSession } from "@/types/fitness";
 
 const DAYS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
-const TABS = ["Dashboard", "Aujourd'hui", "Planning", "Poids", "PR", "Mensurations"] as const;
+const TABS = ["Dashboard", "Focus", "Aujourd'hui", "Planning", "Poids", "PR", "Mensurations"] as const;
 type TabKey = (typeof TABS)[number];
 
 const initialWorkout = {
@@ -122,6 +122,10 @@ export default function Home() {
   const [adminMode, setAdminMode] = useState<"view" | "edit">("view");
   const [activeTab, setActiveTab] = useState<TabKey>("Dashboard");
   const [isScrolled, setIsScrolled] = useState(false);
+  const [focusSessionId, setFocusSessionId] = useState<string | null>(null);
+  const [restSeconds, setRestSeconds] = useState(90);
+  const [isRestRunning, setIsRestRunning] = useState(false);
+  const [workoutSetLogs, setWorkoutSetLogs] = useState<Record<string, boolean[]>>({});
 
   const [workouts, setWorkouts] = useState<WorkoutSession[]>(() => readCache("fitness_workouts_cache"));
   const [weights, setWeights] = useState<WeightLog[]>(() => readCache("fitness_weights_cache"));
@@ -203,6 +207,32 @@ export default function Home() {
       sorted[0]
     );
   }, [currentDayOfWeek, displayWorkouts]);
+  const progressionTips = useMemo(() => {
+    const completed = displayWorkouts.filter((w) => w.status === "completed");
+    const byExercise = new Map<string, { reps: number; sets: number; count: number }>();
+    for (const item of completed) {
+      const prev = byExercise.get(item.exercise);
+      if (!prev) {
+        byExercise.set(item.exercise, { reps: item.reps, sets: item.sets, count: 1 });
+      } else {
+        byExercise.set(item.exercise, {
+          reps: Math.max(prev.reps, item.reps),
+          sets: Math.max(prev.sets, item.sets),
+          count: prev.count + 1,
+        });
+      }
+    }
+    return [...byExercise.entries()]
+      .sort((a, b) => b[1].count - a[1].count)
+      .slice(0, 4)
+      .map(([exercise, stats]) => ({
+        exercise,
+        suggestion:
+          stats.reps < 12
+            ? `Passe à ${stats.sets} x ${stats.reps + 1}`
+            : `Garde ${stats.sets} x ${stats.reps} et augmente légèrement la charge`,
+      }));
+  }, [displayWorkouts]);
   const stats = useMemo(() => {
     const total = displayWorkouts.length;
     const completed = displayWorkouts.filter((w) => w.status === "completed").length;
@@ -264,6 +294,39 @@ export default function Home() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    if (!isRestRunning) return;
+    const timer = window.setInterval(() => {
+      setRestSeconds((prev) => {
+        if (prev <= 1) {
+          setIsRestRunning(false);
+          if (typeof window !== "undefined") {
+            try {
+              const audioContext = new window.AudioContext();
+              const oscillator = audioContext.createOscillator();
+              const gainNode = audioContext.createGain();
+              oscillator.type = "sine";
+              oscillator.frequency.value = 880;
+              gainNode.gain.value = 0.03;
+              oscillator.connect(gainNode);
+              gainNode.connect(audioContext.destination);
+              oscillator.start();
+              oscillator.stop(audioContext.currentTime + 0.15);
+            } catch {
+              // ignore if browser blocks audio
+            }
+            if ("vibrate" in navigator) {
+              navigator.vibrate([120, 60, 120]);
+            }
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [isRestRunning]);
 
   async function handleSignIn() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -547,6 +610,43 @@ export default function Home() {
     );
   }
 
+  function startRestTimer(seconds: number) {
+    setRestSeconds(seconds);
+    setIsRestRunning(true);
+  }
+
+  function initSetLogForSession(session: WorkoutSession) {
+    setWorkoutSetLogs((curr) => {
+      if (curr[session.id]) return curr;
+      return { ...curr, [session.id]: Array.from({ length: session.sets }, () => false) };
+    });
+  }
+
+  function toggleSetLog(sessionId: string, setIndex: number) {
+    const session = workouts.find((item) => item.id === sessionId);
+    if (!session) return;
+
+    setWorkoutSetLogs((curr) => {
+      const currentSets = curr[sessionId] ?? Array.from({ length: session.sets }, () => false);
+      const next = [...currentSets];
+      next[setIndex] = !next[setIndex];
+
+      const allDone = next.length > 0 && next.every(Boolean);
+      const nextStatus: WorkoutSession["status"] = allDone ? "completed" : "planned";
+
+      if (session.status !== nextStatus) {
+        void supabase.from("workout_sessions").update({ status: nextStatus }).eq("id", sessionId);
+        setWorkouts((workoutList) =>
+          workoutList.map((item) =>
+            item.id === sessionId ? { ...item, status: nextStatus } : item,
+          ),
+        );
+      }
+
+      return { ...curr, [sessionId]: next };
+    });
+  }
+
   function startEditingWorkout(workout: WorkoutSession) {
     setEditingWorkoutId(workout.id);
     setEditingWorkoutForm({
@@ -785,6 +885,138 @@ export default function Home() {
             <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
               Objectifs sauvegardés automatiquement en local.
             </p>
+          </article>
+        </section>
+      )}
+
+      {(activeTab === "Dashboard" || activeTab === "Focus") && (
+        <section className="grid animate-fade-slide gap-4 lg:grid-cols-2">
+          <article className={`${panelClass} bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900/40 dark:to-zinc-950/50`}>
+            <div className="flex items-center justify-between">
+              {title("Mode Focus Salle")}
+              <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+                Session active
+              </span>
+            </div>
+            <div className="mt-3 rounded-2xl border border-zinc-200 bg-white/90 p-4 dark:border-zinc-800 dark:bg-zinc-950/60">
+              <p className="text-xs uppercase tracking-wide text-zinc-500">Repos</p>
+              <p className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                {String(Math.floor(restSeconds / 60)).padStart(2, "0")}:
+                {String(restSeconds % 60).padStart(2, "0")}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {[60, 90, 120].map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => startRestTimer(value)}
+                    className="rounded-xl border border-zinc-300 px-3 py-1.5 text-xs font-semibold dark:border-zinc-700"
+                  >
+                    {value}s
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setIsRestRunning((prev) => !prev)}
+                  className="rounded-xl bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900"
+                >
+                  {isRestRunning ? "Pause" : "Lancer"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsRestRunning(false);
+                    setRestSeconds(90);
+                  }}
+                  className="rounded-xl border border-zinc-300 px-3 py-1.5 text-xs font-semibold dark:border-zinc-700"
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+            <div className="mt-3 space-y-2">
+              {todaySessions.map((session) => (
+                <button
+                  key={session.id}
+                  type="button"
+                  onClick={() => {
+                    setFocusSessionId(session.id);
+                    initSetLogForSession(session);
+                    startRestTimer(90);
+                  }}
+                  className={`w-full rounded-xl border p-3 text-left text-sm transition ${
+                    focusSessionId === session.id
+                      ? "border-blue-400 bg-blue-50 dark:border-blue-700 dark:bg-blue-950/30"
+                      : "border-zinc-200 bg-white/80 dark:border-zinc-800 dark:bg-zinc-950/50"
+                  }`}
+                >
+                  <p className="font-semibold text-zinc-900 dark:text-zinc-100">{session.exercise}</p>
+                  <p className="text-zinc-500">
+                    {session.session_time ?? "Sans heure"} · {session.sets} x {session.reps}
+                  </p>
+                </button>
+              ))}
+              {todaySessions.length === 0 ? (
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">Aucune séance aujourd&apos;hui.</p>
+              ) : null}
+            </div>
+            {focusSessionId ? (
+              <div className="mt-4 rounded-2xl border border-zinc-200 bg-white/90 p-4 dark:border-zinc-800 dark:bg-zinc-950/60">
+                <p className="text-xs uppercase tracking-wide text-zinc-500">Journal de séance</p>
+                {todaySessions
+                  .filter((session) => session.id === focusSessionId)
+                  .map((session) => {
+                    const setLog = workoutSetLogs[session.id] ?? Array.from({ length: session.sets }, () => false);
+                    const doneCount = setLog.filter(Boolean).length;
+                    return (
+                      <div key={session.id} className="mt-2">
+                        <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                          {session.exercise} ({doneCount}/{session.sets} séries)
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {setLog.map((done, idx) => (
+                            <button
+                              key={`${session.id}-set-${idx + 1}`}
+                              type="button"
+                              onClick={() => toggleSetLog(session.id, idx)}
+                              className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                                done
+                                  ? "bg-emerald-600 text-white"
+                                  : "border border-zinc-300 text-zinc-600 dark:border-zinc-700 dark:text-zinc-300"
+                              }`}
+                            >
+                              Série {idx + 1}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            ) : null}
+          </article>
+
+          <article className={`${panelClass} bg-gradient-to-b from-emerald-50/70 to-white dark:from-emerald-950/10 dark:to-zinc-950/50`}>
+            {title("Auto-progression")}
+            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+              Suggestions basées sur tes séances marquées en completed.
+            </p>
+            <div className="mt-3 space-y-2">
+              {progressionTips.map((tip) => (
+                <div
+                  key={tip.exercise}
+                  className="rounded-xl border border-zinc-200 bg-white/85 p-3 text-sm dark:border-zinc-800 dark:bg-zinc-950/60"
+                >
+                  <p className="font-semibold text-zinc-900 dark:text-zinc-100">{tip.exercise}</p>
+                  <p className="text-zinc-500">{tip.suggestion}</p>
+                </div>
+              ))}
+              {progressionTips.length === 0 ? (
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  Marque quelques séances en completed pour générer des suggestions.
+                </p>
+              ) : null}
+            </div>
           </article>
         </section>
       )}
