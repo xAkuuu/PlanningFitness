@@ -265,9 +265,17 @@ export default function Home() {
         }`}
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">Planning Fitness</h1>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">Dashboard musculation - style modern UI.</p>
+          <div
+            className={`transition-all duration-300 ${
+              isScrolled ? "max-h-0 opacity-0 -translate-y-1 overflow-hidden" : "max-h-24 opacity-100 translate-y-0"
+            }`}
+          >
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+              Planning Fitness
+            </h1>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              Dashboard musculation - style modern UI.
+            </p>
           </div>
 
           <div className="relative">
