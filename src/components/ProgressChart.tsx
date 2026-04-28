@@ -52,37 +52,62 @@ export function ProgressChart({ logs }: ProgressChartProps) {
       {
         label: "Poids (kg)",
         data: values,
-        borderColor: "#22c55e",
-        backgroundColor: "rgba(34,197,94,0.25)",
+        borderColor: "#0071e3",
+        backgroundColor: "rgba(0,113,227,0.12)",
         fill: true,
-        pointRadius: 4,
+        pointRadius: 3,
         pointHoverRadius: 5,
-        tension: 0.3,
+        pointBackgroundColor: "#0071e3",
+        pointBorderColor: "#ffffff",
+        pointBorderWidth: 2,
+        tension: 0.36,
+        borderWidth: 3,
       },
     ],
   };
 
   return (
-    <div className="rounded-3xl border border-white/60 bg-white/75 p-5 shadow-[0_20px_35px_rgba(13,25,43,0.08)] backdrop-blur-xl dark:border-zinc-700/60 dark:bg-zinc-900/70">
-      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-600 dark:text-zinc-300">
+    <div className="rounded-[32px] border border-black/8 bg-white/78 p-6 shadow-[0_20px_80px_rgba(0,0,0,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-white/6">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-400">
+        Body Metrics
+      </p>
+      <h3 className="mb-2 mt-2 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">
         Courbe de progression du poids
       </h3>
+      <p className="mb-5 text-sm text-zinc-500 dark:text-zinc-300">
+        Visualisation lissée de l&apos;évolution de votre poids au fil du temps.
+      </p>
       {sortedLogs.length > 1 ? (
-        <div className="h-64">
+        <div className="h-72 rounded-[24px] border border-black/8 bg-white/80 p-4 dark:border-white/10 dark:bg-white/5">
           <Line
             data={data}
             options={{
               responsive: true,
               maintainAspectRatio: false,
-              plugins: { legend: { display: false } },
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  backgroundColor: "#111114",
+                  titleColor: "#ffffff",
+                  bodyColor: "#ffffff",
+                  displayColors: false,
+                  padding: 12,
+                  cornerRadius: 14,
+                },
+              },
               scales: {
                 y: {
-                  ticks: { color: "#71717a" },
-                  grid: { color: "rgba(113,113,122,0.2)" },
+                  ticks: { color: "#86868b" },
+                  grid: { color: "rgba(134,134,139,0.14)" },
+                  border: { display: false },
                   min: minValue,
                   max: maxValue,
                 },
-                x: { ticks: { color: "#71717a", maxRotation: 0 }, grid: { display: false } },
+                x: {
+                  ticks: { color: "#86868b", maxRotation: 0 },
+                  grid: { display: false },
+                  border: { display: false },
+                },
               },
             }}
           />

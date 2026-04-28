@@ -1,7 +1,17 @@
-"use client";
+ "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
+import {
+  ActivityIcon,
+  CalendarIcon,
+  Pill,
+  SectionHeading,
+  SparklesIcon,
+  StatCard,
+  TrophyIcon,
+  cn,
+} from "@/components/marketing-ui";
 import { ProgressChart } from "@/components/ProgressChart";
 import { supabase } from "@/lib/supabase";
 import type { Measurement, PersonalRecord, WeightLog, WorkoutSession } from "@/types/fitness";
@@ -24,16 +34,22 @@ const initialPr = { exercise: "", value: 100, unit: "kg", achieved_on: "" };
 const initialMeasurement = { date: "", biceps_cm: "", waist_cm: "", chest_cm: "", thigh_cm: "" };
 const PUBLIC_USER = "public-demo";
 
-const panelClass =
-  "rounded-3xl border border-zinc-200/70 bg-white/70 p-5 shadow-[0_18px_36px_rgba(0,0,0,0.08)] backdrop-blur-xl dark:border-zinc-800/70 dark:bg-zinc-950/55";
+const shellClass =
+  "rounded-[32px] border border-black/8 bg-white/72 shadow-[0_20px_80px_rgba(0,0,0,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-white/6";
+const softPanelClass =
+  "rounded-[28px] border border-black/6 bg-white/78 p-5 shadow-[0_10px_40px_rgba(0,0,0,0.06)] backdrop-blur-xl dark:border-white/10 dark:bg-white/5";
 const inputClass =
-  "w-full rounded-xl border border-zinc-200 bg-white/90 px-3 py-2.5 text-sm text-zinc-800 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:border-zinc-700 dark:bg-zinc-950/80 dark:text-zinc-100 dark:focus:border-blue-500 dark:focus:ring-blue-900/60";
+  "w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-[#0071e3] focus:ring-4 focus:ring-[#0071e3]/10 dark:border-white/10 dark:bg-white/5 dark:text-white";
+const buttonPrimaryClass =
+  "inline-flex items-center justify-center rounded-full bg-[#0071e3] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#0077ed]";
+const buttonSecondaryClass =
+  "inline-flex items-center justify-center rounded-full border border-black/10 bg-white/80 px-5 py-2.5 text-sm font-medium text-zinc-900 transition hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10";
 const typeBadgeClass: Record<string, string> = {
-  push: "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300",
-  pull: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300",
-  legs: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
-  cardio: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
-  other: "bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200",
+  push: "bg-[#fce7f3] text-[#9d174d] dark:bg-[#831843]/40 dark:text-[#fbcfe8]",
+  pull: "bg-[#e0e7ff] text-[#3730a3] dark:bg-[#312e81]/40 dark:text-[#c7d2fe]",
+  legs: "bg-[#dcfce7] text-[#166534] dark:bg-[#14532d]/40 dark:text-[#bbf7d0]",
+  cardio: "bg-[#fef3c7] text-[#92400e] dark:bg-[#78350f]/40 dark:text-[#fde68a]",
+  other: "bg-[#f3f4f6] text-[#3f3f46] dark:bg-white/10 dark:text-white/80",
 };
 
 const publicWorkouts: WorkoutSession[] = [
@@ -74,18 +90,14 @@ function readCache<T>(key: string): T[] {
   }
 }
 
-function title(label: string) {
-  return <h2 className="text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">{label}</h2>;
-}
-
 function formatDateJJMMYYYY(input: string) {
   const [year, month, day] = input.split("-");
   if (!year || !month || !day) return input;
-  return `${day}//${month}//${year}`;
+  return `${day}/${month}/${year}`;
 }
 
 function getCurrentDayOfWeek() {
-  const jsDay = new Date().getDay(); // 0=Sunday
+  const jsDay = new Date().getDay();
   return jsDay === 0 ? 7 : jsDay;
 }
 
@@ -706,220 +718,357 @@ export default function Home() {
     setMessage("Séance mise à jour.");
   }
 
-  if (isLoading) return <main className="mx-auto max-w-6xl p-6">Chargement...</main>;
+  const heroPrimaryStat = nextSession ? `${DAYS[nextSession.day_of_week - 1]} ${nextSession.session_time ?? ""}`.trim() : "Planifie";
+
+  if (isLoading) {
+    return (
+      <main className="mx-auto flex min-h-screen w-full max-w-7xl items-center justify-center px-6">
+        <div className={cn(shellClass, "w-full max-w-xl p-10 text-center")}>
+          <p className="text-xs uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">Fitness OS</p>
+          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-zinc-950 dark:text-white">Chargement de l&apos;expérience</h1>
+          <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-300">
+            Synchronisation du planning, des objectifs et des métriques.
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-6xl space-y-6 px-4 py-6 md:px-8">
+    <main className="mx-auto min-h-screen w-full max-w-7xl px-4 pb-20 pt-4 sm:px-6 lg:px-8">
       <header
-        className={`${panelClass} sticky top-4 z-20 transition-all duration-300 ${
-          isScrolled
-            ? "border-blue-200/70 bg-white/90 shadow-[0_18px_40px_rgba(37,99,235,0.18)] dark:border-blue-900/50 dark:bg-zinc-900/90"
-            : ""
-        }`}
+        className={cn(
+          "sticky top-4 z-40 rounded-full border px-4 py-3 transition-all duration-300",
+          "border-black/8 bg-white/72 backdrop-blur-2xl dark:border-white/10 dark:bg-black/35",
+          isScrolled && "shadow-[0_18px_60px_rgba(0,0,0,0.12)]",
+        )}
       >
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div
-            className={`transition-all duration-300 ${
-              isScrolled ? "max-h-0 opacity-0 -translate-y-1 overflow-hidden" : "max-h-24 opacity-100 translate-y-0"
-            }`}
-          >
-            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="mr-auto">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-zinc-500 dark:text-zinc-400">
               Planning Fitness
-            </h1>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              Dashboard musculation - style modern UI.
             </p>
+            <p className="text-sm text-zinc-900 dark:text-white">Frontend premium inspiré d&apos;Apple</p>
           </div>
 
-          <div
-            className={`relative transition-all duration-300 ${
-              isScrolled ? "max-h-0 opacity-0 overflow-hidden pointer-events-none" : "max-h-40 opacity-100"
-            }`}
-          >
-            {isAdmin ? (
-              <div className="flex items-center gap-2">
-                <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-                  Admin
-                </span>
-                <button onClick={handleSignOut} className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white dark:bg-zinc-100 dark:text-zinc-900">
-                  Déconnexion
-                </button>
-              </div>
-            ) : (
-              <>
+          <nav className="hidden flex-wrap items-center gap-2 lg:flex">
+            {TABS.map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                className={cn(
+                  "rounded-full px-4 py-2 text-sm transition",
+                  activeTab === tab
+                    ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950"
+                    : "text-zinc-600 hover:bg-black/5 dark:text-zinc-300 dark:hover:bg-white/8",
+                )}
+              >
+                {tab}
+              </button>
+            ))}
+          </nav>
+
+          {isAdmin ? (
+            <div className="flex items-center gap-2">
+              <Pill>Admin</Pill>
+              <div className="hidden rounded-full border border-black/8 bg-white/70 p-1 dark:border-white/10 dark:bg-white/5 sm:inline-flex">
                 <button
                   type="button"
-                  onClick={() => setShowAuthMenu((curr) => !curr)}
-                  className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+                  onClick={() => setAdminMode("view")}
+                  className={cn(
+                    "rounded-full px-3 py-1.5 text-xs font-medium",
+                    adminMode === "view" && "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950",
+                  )}
                 >
-                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900">
-                    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M20 21a8 8 0 0 0-16 0" />
-                      <circle cx="12" cy="7" r="4" />
-                    </svg>
-                  </span>
-                  Connexion
+                  Vue
                 </button>
-                <div
-                  className={`fixed inset-x-4 top-24 z-50 w-auto space-y-2 rounded-2xl border border-zinc-200 bg-white p-3 shadow-xl transition-all duration-200 dark:border-zinc-700 dark:bg-zinc-900 sm:absolute sm:inset-x-auto sm:top-12 sm:right-0 sm:w-80 ${
-                    showAuthMenu
-                      ? "visible translate-y-0 opacity-100"
-                      : "invisible -translate-y-1 opacity-0 pointer-events-none"
-                  }`}
+                <button
+                  type="button"
+                  onClick={() => setAdminMode("edit")}
+                  className={cn(
+                    "rounded-full px-3 py-1.5 text-xs font-medium",
+                    adminMode === "edit" && "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950",
+                  )}
                 >
-                    <input className={inputClass} type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                    <div className="relative">
-                      <input className={`${inputClass} pr-20`} type={showPassword ? "text" : "password"} placeholder="Mot de passe" value={password} onChange={(e) => setPassword(e.target.value)} />
-                      <button type="button" onClick={() => setShowPassword((curr) => !curr)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">
-                        {showPassword ? "Masquer" : "Afficher"}
-                      </button>
-                    </div>
-                    <div className="flex gap-2">
-                      <button onClick={handleSignIn} className="rounded-xl bg-zinc-900 px-3 py-2 text-sm font-medium text-white dark:bg-zinc-100 dark:text-zinc-900">Connexion</button>
-                      <button onClick={handleSignUp} className="rounded-xl border border-zinc-300 px-3 py-2 text-sm font-medium dark:border-zinc-700">Inscription</button>
-                      <button onClick={handleForgotPassword} className="ml-auto text-xs font-medium text-indigo-600 dark:text-indigo-400">Oublié ?</button>
-                    </div>
+                  Edition
+                </button>
+              </div>
+              <button type="button" onClick={handleSignOut} className={buttonSecondaryClass}>
+                Déconnexion
+              </button>
+            </div>
+          ) : (
+            <div className="relative">
+              <button type="button" onClick={() => setShowAuthMenu((curr) => !curr)} className={buttonSecondaryClass}>
+                Connexion
+              </button>
+              <div
+                className={cn(
+                  "absolute right-0 top-14 z-50 w-[min(92vw,360px)] rounded-[28px] border border-black/8 bg-white/92 p-4 shadow-[0_20px_80px_rgba(0,0,0,0.16)] backdrop-blur-2xl transition",
+                  "dark:border-white/10 dark:bg-[#111114]/92",
+                  showAuthMenu ? "visible translate-y-0 opacity-100" : "invisible -translate-y-2 opacity-0",
+                )}
+              >
+                <div className="space-y-3">
+                  <input className={inputClass} type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <div className="relative">
+                    <input
+                      className={cn(inputClass, "pr-20")}
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Mot de passe"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((curr) => !curr)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-zinc-500"
+                    >
+                      {showPassword ? "Masquer" : "Afficher"}
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button type="button" onClick={handleSignIn} className={buttonPrimaryClass}>
+                      Connexion
+                    </button>
+                    <button type="button" onClick={handleSignUp} className={buttonSecondaryClass}>
+                      Inscription
+                    </button>
+                    <button type="button" onClick={handleForgotPassword} className="ml-auto text-xs font-medium text-[#0071e3]">
+                      Mot de passe oublié ?
+                    </button>
+                  </div>
                 </div>
-              </>
-            )}
-          </div>
+              </div>
+            </div>
+          )}
         </div>
       </header>
 
-      <section className={`${panelClass} bg-gradient-to-r from-white/80 to-sky-50/70 dark:from-zinc-950/60 dark:to-sky-950/10`}>
+      <section className="relative mt-6 overflow-hidden rounded-[40px] border border-black/8 bg-[#f5f5f7] px-6 py-8 shadow-[0_30px_120px_rgba(0,0,0,0.10)] dark:border-white/10 dark:bg-[#0b0b0f] sm:px-8 sm:py-12">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(0,113,227,0.18),transparent_34%),radial-gradient(circle_at_85%_25%,rgba(92,225,230,0.12),transparent_25%)]" />
+        <div className="relative grid gap-8 lg:grid-cols-[1.3fr_0.9fr] lg:items-end">
+          <div className="max-w-3xl">
+            <Pill className="gap-2">
+              <SparklesIcon />
+              {isAdmin ? "Compte connecté" : "Mode démo intelligent"}
+            </Pill>
+            <h1 className="mt-5 text-5xl font-semibold tracking-[-0.04em] text-zinc-950 dark:text-white sm:text-6xl lg:text-7xl">
+              Votre coaching fitness,
+              <br />
+              pensé comme un produit premium.
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-zinc-600 dark:text-zinc-300 sm:text-lg">
+              Refonte complète du frontend dans une esthétique minimaliste, lumineuse et très hiérarchisée.
+              Les objectifs, le planning, le mode focus et les statistiques restent accessibles dans une seule expérience.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <button type="button" onClick={() => setActiveTab("Dashboard")} className={cn(buttonPrimaryClass, "hero-button")}>
+                Ouvrir le dashboard
+              </button>
+              <button type="button" onClick={() => setActiveTab("Planning")} className={cn(buttonSecondaryClass, "hero-button")}>
+                Voir le planning
+              </button>
+            </div>
+          </div>
+
+          <div className={cn(shellClass, "float-gentle relative overflow-hidden p-6")}>
+            <div className="absolute inset-x-0 top-0 h-24 bg-[linear-gradient(180deg,rgba(0,113,227,0.16),transparent)]" />
+            <div className="relative">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-400">
+                Aperçu système
+              </p>
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                <div>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">Prochaine séance</p>
+                  <p className="mt-1 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+                    {nextSession?.exercise ?? "Aucune"}
+                  </p>
+                  <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">{heroPrimaryStat}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400">Complétion</p>
+                  <p className="mt-1 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+                    {stats.completionRate}%
+                  </p>
+                  <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">{stats.completed} séances complétées</p>
+                </div>
+              </div>
+              <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                <StatCard label="Aujourd'hui" value={todaySessions.length} tone="blue" icon={<CalendarIcon />} />
+                <StatCard label="Exercices" value={stats.uniqueExercises} icon={<ActivityIcon />} />
+                <StatCard label="PR actifs" value={displayPrs.length} tone="green" icon={<TrophyIcon />} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-6 grid gap-4 md:grid-cols-3">
+        <div className={cn(softPanelClass, "lift-hover md:col-span-1")}>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400">Aujourd&apos;hui</p>
+          <p className="mt-3 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">{DAYS[currentDayOfWeek - 1]}</p>
+          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+            {todaySessions.length > 0 ? `${todaySessions.length} séance(s) à gérer.` : "Aucune séance prévue pour le moment."}
+          </p>
+        </div>
+        <div className={cn(softPanelClass, "lift-hover md:col-span-1")}>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400">Objectif poids</p>
+          <p className="mt-3 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">{goals.weightTarget || "Non défini"}</p>
+          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">Suivi personnel sauvegardé localement.</p>
+        </div>
+        <div className={cn(softPanelClass, "lift-hover md:col-span-1")}>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400">PR cible</p>
+          <p className="mt-3 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+            {goals.prExercise && goals.prTarget ? `${goals.prExercise} ${goals.prTarget}` : "A définir"}
+          </p>
+          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">{goals.deadline ? `Deadline ${formatDateJJMMYYYY(goals.deadline)}` : "Ajoutez une échéance."}</p>
+        </div>
+      </section>
+
+      <section className={cn(shellClass, "mt-6 p-4 sm:p-5")}>
         <div className="flex flex-wrap items-center gap-2">
           {TABS.map((tab) => (
             <button
               key={tab}
+              type="button"
               onClick={() => setActiveTab(tab)}
-              className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
-                activeTab === tab ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-              }`}
+              className={cn(
+                "rounded-full px-4 py-2 text-sm transition",
+                activeTab === tab
+                  ? "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950"
+                  : "border border-black/8 bg-white/70 text-zinc-600 hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:bg-white/10",
+              )}
             >
               {tab}
             </button>
           ))}
           {isAdmin ? (
-            <div className="ml-auto inline-flex rounded-xl border border-zinc-200 bg-zinc-100 p-1 dark:border-zinc-700 dark:bg-zinc-800">
-              <button type="button" onClick={() => setAdminMode("view")} className={`rounded-lg px-3 py-1 text-xs font-semibold ${adminMode === "view" ? "bg-white dark:bg-zinc-950" : ""}`}>Affichage</button>
-              <button type="button" onClick={() => setAdminMode("edit")} className={`rounded-lg px-3 py-1 text-xs font-semibold ${adminMode === "edit" ? "bg-white dark:bg-zinc-950" : ""}`}>Modification</button>
+            <div className="ml-auto inline-flex rounded-full border border-black/8 bg-white/70 p-1 dark:border-white/10 dark:bg-white/5">
+              <button
+                type="button"
+                onClick={() => setAdminMode("view")}
+                className={cn("rounded-full px-3 py-1.5 text-xs font-medium", adminMode === "view" && "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950")}
+              >
+                Affichage
+              </button>
+              <button
+                type="button"
+                onClick={() => setAdminMode("edit")}
+                className={cn("rounded-full px-3 py-1.5 text-xs font-medium", adminMode === "edit" && "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950")}
+              >
+                Modification
+              </button>
             </div>
           ) : null}
         </div>
       </section>
 
       {message ? (
-        <section className={`${panelClass} border-emerald-200/80 bg-gradient-to-r from-emerald-50/80 to-white dark:border-emerald-900/40 dark:from-emerald-950/20 dark:to-zinc-950/40`}>
-          <p className="text-sm text-emerald-600 dark:text-emerald-400">{message}</p>
+        <section className={cn(shellClass, "mt-6 p-5")}>
+          <p className="text-sm text-[#0071e3]">{message}</p>
         </section>
       ) : null}
 
       {(activeTab === "Dashboard" || activeTab === "Aujourd'hui") && (
-        <section className="grid animate-fade-slide gap-4 md:grid-cols-2">
-          <article className={`${panelClass} bg-gradient-to-b from-sky-50/70 to-white dark:from-sky-950/10 dark:to-zinc-950/50`}>
-            <div className="flex items-center justify-between">
-              {title("Aujourd'hui")}
-              <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700 dark:bg-sky-900/40 dark:text-sky-300">
-                {DAYS[currentDayOfWeek - 1]}
-              </span>
-            </div>
-            {todaySessions.length > 0 ? (
-              <ul className="mt-3 space-y-2">
-                {todaySessions.map((session) => (
-                  <li key={session.id} className="rounded-xl border border-zinc-200 bg-white/85 p-3 text-sm dark:border-zinc-800 dark:bg-zinc-950/60">
-                    <p className="font-semibold text-zinc-900 dark:text-zinc-100">{session.exercise}</p>
-                    <p className="text-zinc-600 dark:text-zinc-300">
-                      {session.session_time ?? "Sans heure"} - {session.sets} x {session.reps}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
-                Aucune séance prévue aujourd&apos;hui.
-              </p>
-            )}
-            {nextSession ? (
-              <div className="mt-4 rounded-xl border border-zinc-200 bg-zinc-50/90 p-3 dark:border-zinc-800 dark:bg-zinc-900/60">
-                <p className="text-xs uppercase tracking-wide text-zinc-500">Prochaine séance</p>
-                <p className="mt-1 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                  {nextSession.exercise}
-                </p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  {DAYS[nextSession.day_of_week - 1]} - {nextSession.session_time ?? "Sans heure"}
-                </p>
+        <section className="mt-10 space-y-5">
+          <SectionHeading
+            eyebrow="Overview"
+            title="Une vue claire de la journée."
+            description="Inspiré des pages produit Apple: gros contraste typographique, blocs respirants et lecture immédiate des priorités."
+          />
+          <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+            <article className={cn(shellClass, "p-6")}>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-400">Aujourd&apos;hui</p>
+                  <h3 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+                    {todaySessions.length > 0 ? `${todaySessions.length} bloc(s) prévus` : "Journée légère"}
+                  </h3>
+                </div>
+                <Pill className="gap-2">
+                  <CalendarIcon />
+                  {DAYS[currentDayOfWeek - 1]}
+                </Pill>
               </div>
-            ) : null}
-          </article>
+              <div className="mt-6 space-y-3">
+                {todaySessions.length > 0 ? (
+                  todaySessions.map((session) => (
+                    <div key={session.id} className="lift-hover rounded-[24px] border border-black/8 bg-white/85 p-4 dark:border-white/10 dark:bg-white/5">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <p className="text-lg font-medium text-zinc-950 dark:text-white">{session.exercise}</p>
+                          <p className="text-sm text-zinc-500 dark:text-zinc-300">
+                            {session.session_time ?? "Sans heure"} • {session.sets} x {session.reps}
+                          </p>
+                        </div>
+                        <span className={cn("rounded-full px-3 py-1 text-xs font-semibold uppercase", typeBadgeClass[session.workout_type ?? "other"])}>
+                          {session.workout_type}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-[24px] border border-dashed border-black/12 p-6 text-sm text-zinc-500 dark:border-white/10 dark:text-zinc-400">
+                    Aucune séance prévue aujourd&apos;hui.
+                  </div>
+                )}
+              </div>
+            </article>
 
-          <article className={`${panelClass} bg-gradient-to-b from-amber-50/70 to-white dark:from-amber-950/10 dark:to-zinc-950/50`}>
-            {title("Objectifs")}
-            <div className="mt-3 grid gap-2">
-              <input
-                className={inputClass}
-                placeholder="Objectif poids (ex: 78kg)"
-                value={goals.weightTarget}
-                onChange={(e) => setGoals((curr) => ({ ...curr, weightTarget: e.target.value }))}
-              />
-              <div className="grid gap-2 md:grid-cols-2">
-                <input
-                  className={inputClass}
-                  placeholder="Exercice PR cible"
-                  value={goals.prExercise}
-                  onChange={(e) => setGoals((curr) => ({ ...curr, prExercise: e.target.value }))}
-                />
-                <input
-                  className={inputClass}
-                  placeholder="Valeur PR cible"
-                  value={goals.prTarget}
-                  onChange={(e) => setGoals((curr) => ({ ...curr, prTarget: e.target.value }))}
-                />
+            <article className={cn(shellClass, "p-6")}>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-400">Objectifs</p>
+              <h3 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+                Cadrez le prochain cap.
+              </h3>
+              <div className="mt-6 grid gap-3">
+                <input className={inputClass} placeholder="Objectif poids (ex: 78kg)" value={goals.weightTarget} onChange={(e) => setGoals((curr) => ({ ...curr, weightTarget: e.target.value }))} />
+                <div className="grid gap-3 md:grid-cols-2">
+                  <input className={inputClass} placeholder="Exercice PR cible" value={goals.prExercise} onChange={(e) => setGoals((curr) => ({ ...curr, prExercise: e.target.value }))} />
+                  <input className={inputClass} placeholder="Valeur PR cible" value={goals.prTarget} onChange={(e) => setGoals((curr) => ({ ...curr, prTarget: e.target.value }))} />
+                </div>
+                <input className={inputClass} type="date" value={goals.deadline} onChange={(e) => setGoals((curr) => ({ ...curr, deadline: e.target.value }))} />
               </div>
-              <input
-                className={inputClass}
-                type="date"
-                value={goals.deadline}
-                onChange={(e) => setGoals((curr) => ({ ...curr, deadline: e.target.value }))}
-              />
-            </div>
-            <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
-              Objectifs sauvegardés automatiquement en local.
-            </p>
-          </article>
+            </article>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+            <StatCard label="Total séances" value={stats.total} icon={<ActivityIcon />} />
+            <StatCard label="Complétées" value={stats.completed} tone="green" icon={<SparklesIcon />} />
+            <StatCard label="Planifiées" value={stats.planned} tone="blue" icon={<CalendarIcon />} />
+            <StatCard label="Skipped" value={stats.skipped} tone="amber" icon={<ActivityIcon />} />
+            <StatCard label="Taux réussite" value={`${stats.completionRate}%`} icon={<SparklesIcon />} />
+            <StatCard label="Exercices uniques" value={stats.uniqueExercises} icon={<TrophyIcon />} />
+          </div>
         </section>
       )}
 
       {(activeTab === "Dashboard" || activeTab === "Focus") && (
-        <section className="grid animate-fade-slide gap-4 lg:grid-cols-2">
-          <article className={`${panelClass} bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900/40 dark:to-zinc-950/50`}>
-            <div className="flex items-center justify-between">
-              {title("Mode Focus Salle")}
-              <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
-                Session active
-              </span>
-            </div>
-            <div className="mt-3 rounded-2xl border border-zinc-200 bg-white/90 p-4 dark:border-zinc-800 dark:bg-zinc-950/60">
-              <p className="text-xs uppercase tracking-wide text-zinc-500">Repos</p>
-              <p className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                {String(Math.floor(restSeconds / 60)).padStart(2, "0")}:
-                {String(restSeconds % 60).padStart(2, "0")}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
+        <section className="mt-14 space-y-5">
+          <SectionHeading
+            eyebrow="Focus"
+            title="Mode séance, sans friction."
+            description="Un espace plus immersif pour sélectionner l&apos;exercice en cours, lancer le chrono de repos et suivre les séries."
+          />
+          <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+            <article className={cn(shellClass, "p-6")}>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-400">Chrono repos</p>
+                  <h3 className="mt-2 text-5xl font-semibold tracking-[-0.04em] text-zinc-950 dark:text-white">
+                    {String(Math.floor(restSeconds / 60)).padStart(2, "0")}:{String(restSeconds % 60).padStart(2, "0")}
+                  </h3>
+                </div>
+                <Pill>{isRestRunning ? "En cours" : "En pause"}</Pill>
+              </div>
+              <div className="mt-5 flex flex-wrap gap-2">
                 {[60, 90, 120].map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => startRestTimer(value)}
-                    className="rounded-xl border border-zinc-300 px-3 py-1.5 text-xs font-semibold dark:border-zinc-700"
-                  >
+                  <button key={value} type="button" onClick={() => startRestTimer(value)} className={buttonSecondaryClass}>
                     {value}s
                   </button>
                 ))}
-                <button
-                  type="button"
-                  onClick={() => setIsRestRunning((prev) => !prev)}
-                  className="rounded-xl bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900"
-                >
+                <button type="button" onClick={() => setIsRestRunning((prev) => !prev)} className={buttonPrimaryClass}>
                   {isRestRunning ? "Pause" : "Lancer"}
                 </button>
                 <button
@@ -928,573 +1077,428 @@ export default function Home() {
                     setIsRestRunning(false);
                     setRestSeconds(90);
                   }}
-                  className="rounded-xl border border-zinc-300 px-3 py-1.5 text-xs font-semibold dark:border-zinc-700"
+                  className={buttonSecondaryClass}
                 >
                   Reset
                 </button>
               </div>
-            </div>
-            <div className="mt-3 space-y-2">
-              {todaySessions.map((session) => (
-                <button
-                  key={session.id}
-                  type="button"
-                  onClick={() => {
-                    setFocusSessionId(session.id);
-                    initSetLogForSession(session);
-                    startRestTimer(90);
-                  }}
-                  className={`w-full rounded-xl border p-3 text-left text-sm transition ${
-                    focusSessionId === session.id
-                      ? "border-blue-400 bg-blue-50 dark:border-blue-700 dark:bg-blue-950/30"
-                      : "border-zinc-200 bg-white/80 dark:border-zinc-800 dark:bg-zinc-950/50"
-                  }`}
-                >
-                  <p className="font-semibold text-zinc-900 dark:text-zinc-100">{session.exercise}</p>
-                  <p className="text-zinc-500">
-                    {session.session_time ?? "Sans heure"} · {session.sets} x {session.reps}
-                  </p>
-                </button>
-              ))}
-              {todaySessions.length === 0 ? (
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">Aucune séance aujourd&apos;hui.</p>
-              ) : null}
-            </div>
-            {focusSessionId ? (
-              <div className="mt-4 rounded-2xl border border-zinc-200 bg-white/90 p-4 dark:border-zinc-800 dark:bg-zinc-950/60">
-                <p className="text-xs uppercase tracking-wide text-zinc-500">Journal de séance</p>
-                {todaySessions
-                  .filter((session) => session.id === focusSessionId)
-                  .map((session) => {
-                    const setLog = workoutSetLogs[session.id] ?? Array.from({ length: session.sets }, () => false);
-                    const doneCount = setLog.filter(Boolean).length;
-                    return (
-                      <div key={session.id} className="mt-2">
-                        <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                          {session.exercise} ({doneCount}/{session.sets} séries)
-                        </p>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {setLog.map((done, idx) => (
-                            <button
-                              key={`${session.id}-set-${idx + 1}`}
-                              type="button"
-                              onClick={() => toggleSetLog(session.id, idx)}
-                              className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-                                done
-                                  ? "bg-emerald-600 text-white"
-                                  : "border border-zinc-300 text-zinc-600 dark:border-zinc-700 dark:text-zinc-300"
-                              }`}
-                            >
-                              Série {idx + 1}
-                            </button>
-                          ))}
+
+              <div className="mt-8 space-y-3">
+                {todaySessions.length > 0 ? (
+                  todaySessions.map((session) => (
+                    <button
+                      key={session.id}
+                      type="button"
+                      onClick={() => {
+                        setFocusSessionId(session.id);
+                        initSetLogForSession(session);
+                        startRestTimer(90);
+                      }}
+                      className={cn(
+                        "w-full rounded-[24px] border p-4 text-left transition",
+                        focusSessionId === session.id
+                          ? "border-[#0071e3]/30 bg-[#0071e3]/8"
+                          : "border-black/8 bg-white/80 hover:bg-white dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8",
+                      )}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <p className="text-base font-medium text-zinc-950 dark:text-white">{session.exercise}</p>
+                          <p className="text-sm text-zinc-500 dark:text-zinc-300">
+                            {session.session_time ?? "Sans heure"} • {session.sets} x {session.reps}
+                          </p>
                         </div>
+                        <span className={cn("rounded-full px-3 py-1 text-xs font-semibold uppercase", typeBadgeClass[session.workout_type ?? "other"])}>
+                          {session.workout_type}
+                        </span>
                       </div>
-                    );
-                  })}
+                    </button>
+                  ))
+                ) : (
+                  <div className="rounded-[24px] border border-dashed border-black/12 p-6 text-sm text-zinc-500 dark:border-white/10 dark:text-zinc-400">
+                    Aucune séance aujourd&apos;hui.
+                  </div>
+                )}
               </div>
-            ) : null}
-          </article>
 
-          <article className={`${panelClass} bg-gradient-to-b from-emerald-50/70 to-white dark:from-emerald-950/10 dark:to-zinc-950/50`}>
-            {title("Auto-progression")}
-            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
-              Suggestions basées sur tes séances marquées en completed.
-            </p>
-            <div className="mt-3 space-y-2">
-              {progressionTips.map((tip) => (
-                <div
-                  key={tip.exercise}
-                  className="rounded-xl border border-zinc-200 bg-white/85 p-3 text-sm dark:border-zinc-800 dark:bg-zinc-950/60"
-                >
-                  <p className="font-semibold text-zinc-900 dark:text-zinc-100">{tip.exercise}</p>
-                  <p className="text-zinc-500">{tip.suggestion}</p>
+              {focusSessionId ? (
+                <div className="mt-6 rounded-[28px] border border-black/8 bg-white/80 p-5 dark:border-white/10 dark:bg-white/5">
+                  {todaySessions
+                    .filter((session) => session.id === focusSessionId)
+                    .map((session) => {
+                      const setLog = workoutSetLogs[session.id] ?? Array.from({ length: session.sets }, () => false);
+                      const doneCount = setLog.filter(Boolean).length;
+
+                      return (
+                        <div key={session.id}>
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-400">Journal de séance</p>
+                          <h4 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+                            {session.exercise}
+                          </h4>
+                          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-300">{doneCount}/{session.sets} séries validées</p>
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            {setLog.map((done, idx) => (
+                              <button
+                                key={`${session.id}-set-${idx + 1}`}
+                                type="button"
+                                onClick={() => toggleSetLog(session.id, idx)}
+                                className={cn(
+                                  "rounded-full px-4 py-2 text-sm font-medium transition",
+                                  done ? "bg-[#1d9b5f] text-white" : "border border-black/10 bg-white text-zinc-700 dark:border-white/10 dark:bg-white/5 dark:text-zinc-200",
+                                )}
+                              >
+                                Série {idx + 1}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
                 </div>
-              ))}
-              {progressionTips.length === 0 ? (
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  Marque quelques séances en completed pour générer des suggestions.
-                </p>
               ) : null}
-            </div>
-          </article>
-        </section>
-      )}
+            </article>
 
-      {(activeTab === "Dashboard" || activeTab === "Aujourd'hui") && (
-        <section className={`${panelClass} animate-fade-slide`}>
-          {title("Stats rapides")}
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
-            <div className="rounded-xl border border-zinc-200 bg-white/85 p-3 dark:border-zinc-800 dark:bg-zinc-950/60">
-              <p className="text-xs text-zinc-500">Total séances</p>
-              <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{stats.total}</p>
-            </div>
-            <div className="rounded-xl border border-zinc-200 bg-white/85 p-3 dark:border-zinc-800 dark:bg-zinc-950/60">
-              <p className="text-xs text-zinc-500">Complétées</p>
-              <p className="text-xl font-bold text-emerald-600">{stats.completed}</p>
-            </div>
-            <div className="rounded-xl border border-zinc-200 bg-white/85 p-3 dark:border-zinc-800 dark:bg-zinc-950/60">
-              <p className="text-xs text-zinc-500">Planned</p>
-              <p className="text-xl font-bold text-blue-600">{stats.planned}</p>
-            </div>
-            <div className="rounded-xl border border-zinc-200 bg-white/85 p-3 dark:border-zinc-800 dark:bg-zinc-950/60">
-              <p className="text-xs text-zinc-500">Skipped</p>
-              <p className="text-xl font-bold text-rose-600">{stats.skipped}</p>
-            </div>
-            <div className="rounded-xl border border-zinc-200 bg-white/85 p-3 dark:border-zinc-800 dark:bg-zinc-950/60">
-              <p className="text-xs text-zinc-500">Taux completion</p>
-              <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{stats.completionRate}%</p>
-            </div>
-            <div className="rounded-xl border border-zinc-200 bg-white/85 p-3 dark:border-zinc-800 dark:bg-zinc-950/60">
-              <p className="text-xs text-zinc-500">Exercices uniques</p>
-              <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{stats.uniqueExercises}</p>
-            </div>
+            <article className={cn(shellClass, "p-6")}>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-400">Auto progression</p>
+              <h3 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+                Suggestions pilotées par vos performances.
+              </h3>
+              <div className="mt-6 space-y-3">
+                {progressionTips.length > 0 ? (
+                  progressionTips.map((tip) => (
+                    <div key={tip.exercise} className="lift-hover rounded-[24px] border border-black/8 bg-white/80 p-4 dark:border-white/10 dark:bg-white/5">
+                      <p className="text-base font-medium text-zinc-950 dark:text-white">{tip.exercise}</p>
+                      <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-300">{tip.suggestion}</p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-[24px] border border-dashed border-black/12 p-6 text-sm text-zinc-500 dark:border-white/10 dark:text-zinc-400">
+                    Marquez quelques séances comme terminées pour activer les recommandations.
+                  </div>
+                )}
+              </div>
+            </article>
           </div>
         </section>
       )}
 
       {(activeTab === "Dashboard" || activeTab === "Planning") && (
-        <section key={`planning-${activeTab}`} className={`${panelClass} animate-fade-slide bg-gradient-to-b from-sky-50/75 to-white dark:from-sky-950/10 dark:to-zinc-950/50`}>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            {title("Planning Hebdomadaire")}
-            <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
-              {displayWorkouts.length} seance(s)
-            </span>
-          </div>
+        <section className="mt-14 space-y-5">
+          <SectionHeading
+            eyebrow="Planning"
+            title="Un planning hebdomadaire plus éditorial."
+            description="Cartes plus aérées, filtres intégrés, outils de duplication et génération rapide pour construire une semaine complète."
+            action={<Pill>{displayWorkouts.length} séance(s)</Pill>}
+          />
+
           {canEdit ? (
-            <div className="mt-4 space-y-3 rounded-2xl border border-blue-100/80 bg-gradient-to-r from-blue-50/80 to-indigo-50/70 p-3 dark:border-blue-900/40 dark:from-blue-950/20 dark:to-indigo-950/20">
-              <div className="grid gap-2 md:grid-cols-7">
-              <select value={workoutForm.day_of_week ?? 1} onChange={(e) => setWorkoutForm((curr) => ({ ...normalizeWorkoutForm(curr), day_of_week: Number(e.target.value) }))} className={inputClass}>
-                {DAYS.map((day, i) => <option key={day} value={i + 1}>{day}</option>)}
-              </select>
-              <input className={inputClass} placeholder="Exercice" value={workoutForm.exercise ?? ""} onChange={(e) => setWorkoutForm((curr) => ({ ...normalizeWorkoutForm(curr), exercise: e.target.value }))} />
-              <input className={inputClass} type="time" value={workoutForm.session_time ?? "18:00"} onChange={(e) => setWorkoutForm((curr) => ({ ...normalizeWorkoutForm(curr), session_time: e.target.value }))} />
-              <select value={workoutForm.workout_type ?? "other"} onChange={(e) => setWorkoutForm((curr) => ({ ...normalizeWorkoutForm(curr), workout_type: e.target.value as WorkoutSession["workout_type"] }))} className={inputClass}>
-                <option value="push">Push</option>
-                <option value="pull">Pull</option>
-                <option value="legs">Legs</option>
-                <option value="cardio">Cardio</option>
-                <option value="other">Autre</option>
-              </select>
-              <input className={inputClass} type="number" placeholder="Sets" value={workoutForm.sets ?? 3} onChange={(e) => setWorkoutForm((curr) => ({ ...normalizeWorkoutForm(curr), sets: Number(e.target.value) }))} />
-              <input className={inputClass} type="number" placeholder="Reps" value={workoutForm.reps ?? 10} onChange={(e) => setWorkoutForm((curr) => ({ ...normalizeWorkoutForm(curr), reps: Number(e.target.value) }))} />
-              <button onClick={addWorkout} className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:brightness-110">Ajouter</button>
+            <div className={cn(shellClass, "space-y-4 p-6")}>
+              <div className="grid gap-3 xl:grid-cols-7">
+                <select value={workoutForm.day_of_week ?? 1} onChange={(e) => setWorkoutForm((curr) => ({ ...normalizeWorkoutForm(curr), day_of_week: Number(e.target.value) }))} className={inputClass}>
+                  {DAYS.map((day, i) => (
+                    <option key={day} value={i + 1}>{day}</option>
+                  ))}
+                </select>
+                <input className={inputClass} placeholder="Exercice" value={workoutForm.exercise ?? ""} onChange={(e) => setWorkoutForm((curr) => ({ ...normalizeWorkoutForm(curr), exercise: e.target.value }))} />
+                <input className={inputClass} type="time" value={workoutForm.session_time ?? "18:00"} onChange={(e) => setWorkoutForm((curr) => ({ ...normalizeWorkoutForm(curr), session_time: e.target.value }))} />
+                <select value={workoutForm.workout_type ?? "other"} onChange={(e) => setWorkoutForm((curr) => ({ ...normalizeWorkoutForm(curr), workout_type: e.target.value as WorkoutSession["workout_type"] }))} className={inputClass}>
+                  <option value="push">Push</option>
+                  <option value="pull">Pull</option>
+                  <option value="legs">Legs</option>
+                  <option value="cardio">Cardio</option>
+                  <option value="other">Autre</option>
+                </select>
+                <input className={inputClass} type="number" placeholder="Sets" value={workoutForm.sets ?? 3} onChange={(e) => setWorkoutForm((curr) => ({ ...normalizeWorkoutForm(curr), sets: Number(e.target.value) }))} />
+                <input className={inputClass} type="number" placeholder="Reps" value={workoutForm.reps ?? 10} onChange={(e) => setWorkoutForm((curr) => ({ ...normalizeWorkoutForm(curr), reps: Number(e.target.value) }))} />
+                <button type="button" onClick={addWorkout} className={buttonPrimaryClass}>Ajouter</button>
               </div>
 
-              <div className="rounded-xl border border-blue-200/70 bg-white/70 p-3 dark:border-blue-900/40 dark:bg-zinc-950/40">
-                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">Ajout rapide en lot</p>
-                  <select
-                    value={bulkDay}
-                    onChange={(e) => setBulkDay(Number(e.target.value))}
-                    className="rounded-lg border border-zinc-300 bg-white px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-900"
-                  >
-                    {DAYS.map((day, i) => (
-                      <option key={day} value={i + 1}>
-                        {day}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="mb-2 flex flex-wrap gap-2">
-                  {Object.keys(BULK_TEMPLATES).map((templateName) => (
-                    <button
-                      key={templateName}
-                      type="button"
-                      onClick={() => setBulkWorkoutsText(BULK_TEMPLATES[templateName as keyof typeof BULK_TEMPLATES])}
-                      className="rounded-full border border-zinc-300 bg-white px-3 py-1 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
-                    >
-                      {templateName}
-                    </button>
-                  ))}
-                </div>
-                <textarea
-                  value={bulkWorkoutsText}
-                  onChange={(e) => setBulkWorkoutsText(e.target.value)}
-                  placeholder={
-                    "Une séance par ligne\n18:00 | push | Développé couché | 4 | 8\n19:00 | pull | Tractions lestées | 4 | 6"
-                  }
-                  rows={4}
-                  className={`${inputClass} resize-y`}
-                />
-                <div className="mt-2 flex items-center justify-between gap-2">
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                    Format: HH:MM | type(push/pull/legs/cardio/other) | exercice | sets | reps
-                  </p>
-                  <button
-                    onClick={addWorkoutsInBulk}
-                    className="rounded-xl bg-zinc-900 px-3 py-2 text-xs font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900"
-                  >
-                    Ajouter en lot
-                  </button>
-                </div>
-              </div>
-              <div className="rounded-xl border border-indigo-200/70 bg-white/70 p-3 dark:border-indigo-900/40 dark:bg-zinc-950/40">
-                <p className="mb-2 text-sm font-semibold text-zinc-700 dark:text-zinc-200">
-                  Outils créatifs
-                </p>
-                <div className="grid gap-2 md:grid-cols-2">
-                  <div className="rounded-lg border border-zinc-200 p-2 dark:border-zinc-800">
-                    <p className="mb-1 text-xs font-semibold text-zinc-600 dark:text-zinc-300">Dupliquer un jour</p>
-                    <div className="flex items-center gap-2">
-                      <select
-                        value={duplicateFromDay}
-                        onChange={(e) => setDuplicateFromDay(Number(e.target.value))}
-                        className="rounded-lg border border-zinc-300 bg-white px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-900"
-                      >
-                        {DAYS.map((day, i) => (
-                          <option key={`${day}-from`} value={i + 1}>
-                            {day}
-                          </option>
-                        ))}
-                      </select>
-                      <span className="text-xs text-zinc-500">→</span>
-                      <select
-                        value={duplicateToDay}
-                        onChange={(e) => setDuplicateToDay(Number(e.target.value))}
-                        className="rounded-lg border border-zinc-300 bg-white px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-900"
-                      >
-                        {DAYS.map((day, i) => (
-                          <option key={`${day}-to`} value={i + 1}>
-                            {day}
-                          </option>
-                        ))}
-                      </select>
-                      <button
-                        type="button"
-                        onClick={duplicateDayPlan}
-                        className="ml-auto rounded-lg bg-indigo-600 px-2 py-1 text-xs font-semibold text-white"
-                      >
-                        Dupliquer
-                      </button>
-                    </div>
-                  </div>
-                  <div className="rounded-lg border border-zinc-200 p-2 dark:border-zinc-800">
-                    <p className="mb-1 text-xs font-semibold text-zinc-600 dark:text-zinc-300">Générateur express</p>
-                    <div className="flex items-center gap-2">
-                      <select
-                        value={generatorType}
-                        onChange={(e) =>
-                          setGeneratorType(e.target.value as WorkoutSession["workout_type"])
-                        }
-                        className="rounded-lg border border-zinc-300 bg-white px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-900"
-                      >
-                        <option value="push">Push</option>
-                        <option value="pull">Pull</option>
-                        <option value="legs">Legs</option>
-                        <option value="cardio">Cardio</option>
-                        <option value="other">Autre</option>
-                      </select>
-                      <input
-                        type="time"
-                        value={generatorStartTime}
-                        onChange={(e) => setGeneratorStartTime(e.target.value)}
-                        className="rounded-lg border border-zinc-300 bg-white px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-900"
-                      />
-                      <button
-                        type="button"
-                        onClick={generateExpressSession}
-                        className="ml-auto rounded-lg bg-indigo-600 px-2 py-1 text-xs font-semibold text-white"
-                      >
-                        Générer
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                {topExercises.length > 0 ? (
-                  <div className="mt-2">
-                    <p className="mb-1 text-xs font-semibold text-zinc-600 dark:text-zinc-300">
-                      Top exercices
-                    </p>
-                    <div className="flex flex-wrap gap-1">
-                      {topExercises.map((exercise) => (
-                        <button
-                          key={exercise}
-                          type="button"
-                          onClick={() =>
-                            setWorkoutForm((curr) => ({ ...normalizeWorkoutForm(curr), exercise }))
-                          }
-                          className="rounded-full border border-zinc-300 bg-white px-2 py-0.5 text-[11px] font-semibold text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
-                        >
-                          {exercise}
-                        </button>
+              <div className="grid gap-4 xl:grid-cols-2">
+                <div className="rounded-[28px] border border-black/8 bg-white/75 p-4 dark:border-white/10 dark:bg-white/5">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-lg font-medium text-zinc-950 dark:text-white">Ajout rapide en lot</h3>
+                    <select value={bulkDay} onChange={(e) => setBulkDay(Number(e.target.value))} className="rounded-full border border-black/10 bg-white px-3 py-2 text-xs dark:border-white/10 dark:bg-white/5">
+                      {DAYS.map((day, i) => (
+                        <option key={day} value={i + 1}>{day}</option>
                       ))}
+                    </select>
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {Object.keys(BULK_TEMPLATES).map((templateName) => (
+                      <button key={templateName} type="button" onClick={() => setBulkWorkoutsText(BULK_TEMPLATES[templateName as keyof typeof BULK_TEMPLATES])} className={buttonSecondaryClass}>
+                        {templateName}
+                      </button>
+                    ))}
+                  </div>
+                  <textarea
+                    value={bulkWorkoutsText}
+                    onChange={(e) => setBulkWorkoutsText(e.target.value)}
+                    rows={5}
+                    placeholder={"Une séance par ligne\n18:00 | push | Développé couché | 4 | 8\n19:00 | pull | Tractions lestées | 4 | 6"}
+                    className={cn(inputClass, "mt-4 resize-y")}
+                  />
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">Format: HH:MM | type | exercice | sets | reps</p>
+                    <button type="button" onClick={addWorkoutsInBulk} className={buttonPrimaryClass}>Ajouter en lot</button>
+                  </div>
+                </div>
+
+                <div className="rounded-[28px] border border-black/8 bg-white/75 p-4 dark:border-white/10 dark:bg-white/5">
+                  <h3 className="text-lg font-medium text-zinc-950 dark:text-white">Outils créatifs</h3>
+                  <div className="mt-4 grid gap-3">
+                    <div className="rounded-[22px] border border-black/8 p-4 dark:border-white/10">
+                      <p className="text-sm font-medium text-zinc-950 dark:text-white">Dupliquer un jour</p>
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <select value={duplicateFromDay} onChange={(e) => setDuplicateFromDay(Number(e.target.value))} className="rounded-full border border-black/10 bg-white px-3 py-2 text-xs dark:border-white/10 dark:bg-white/5">
+                          {DAYS.map((day, i) => (
+                            <option key={`${day}-from`} value={i + 1}>{day}</option>
+                          ))}
+                        </select>
+                        <span className="text-sm text-zinc-400">→</span>
+                        <select value={duplicateToDay} onChange={(e) => setDuplicateToDay(Number(e.target.value))} className="rounded-full border border-black/10 bg-white px-3 py-2 text-xs dark:border-white/10 dark:bg-white/5">
+                          {DAYS.map((day, i) => (
+                            <option key={`${day}-to`} value={i + 1}>{day}</option>
+                          ))}
+                        </select>
+                        <button type="button" onClick={duplicateDayPlan} className={buttonPrimaryClass}>Dupliquer</button>
+                      </div>
+                    </div>
+
+                    <div className="rounded-[22px] border border-black/8 p-4 dark:border-white/10">
+                      <p className="text-sm font-medium text-zinc-950 dark:text-white">Générateur express</p>
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <select value={generatorType} onChange={(e) => setGeneratorType(e.target.value as WorkoutSession["workout_type"])} className="rounded-full border border-black/10 bg-white px-3 py-2 text-xs dark:border-white/10 dark:bg-white/5">
+                          <option value="push">Push</option>
+                          <option value="pull">Pull</option>
+                          <option value="legs">Legs</option>
+                          <option value="cardio">Cardio</option>
+                          <option value="other">Autre</option>
+                        </select>
+                        <input type="time" value={generatorStartTime} onChange={(e) => setGeneratorStartTime(e.target.value)} className="rounded-full border border-black/10 bg-white px-3 py-2 text-xs dark:border-white/10 dark:bg-white/5" />
+                        <button type="button" onClick={generateExpressSession} className={buttonPrimaryClass}>Générer</button>
+                      </div>
                     </div>
                   </div>
-                ) : null}
+
+                  {topExercises.length > 0 ? (
+                    <div className="mt-4">
+                      <p className="text-sm font-medium text-zinc-950 dark:text-white">Top exercices</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {topExercises.map((exercise) => (
+                          <button key={exercise} type="button" onClick={() => setWorkoutForm((curr) => ({ ...normalizeWorkoutForm(curr), exercise }))} className={buttonSecondaryClass}>
+                            {exercise}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
               </div>
             </div>
           ) : null}
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-            <input
-              value={planningQuery}
-              onChange={(e) => setPlanningQuery(e.target.value)}
-              placeholder="Filtrer les séances (ex: squat, push...)"
-              className={`${inputClass} w-full md:w-80`}
-            />
-            {planningQuery ? (
-              <button
-                type="button"
-                onClick={() => setPlanningQuery("")}
-                className="rounded-xl border border-zinc-300 px-3 py-2 text-xs font-semibold dark:border-zinc-700"
-              >
-                Effacer filtre
-              </button>
-            ) : null}
-          </div>
-          <div className="mt-5 rounded-2xl border border-zinc-200/80 bg-white/60 p-2 dark:border-zinc-800 dark:bg-zinc-950/40">
-            <div className="grid grid-flow-col auto-cols-[80vw] gap-3 overflow-x-auto pb-2 snap-x snap-mandatory md:grid-flow-row md:auto-cols-auto md:overflow-x-visible md:pb-0 md:snap-none md:grid-cols-2 xl:grid-cols-7">
-            {DAYS.map((day, i) => (
-              <div key={day} className="group min-h-64 snap-start rounded-xl border border-zinc-200/90 bg-white p-2 shadow-sm dark:border-zinc-800 dark:bg-zinc-950/60">
-                <div className="sticky top-2 z-10 mb-2 flex items-center justify-between rounded-lg bg-zinc-100/90 px-2 py-1 dark:bg-zinc-900/90">
-                  <h3 className="text-xs font-bold uppercase tracking-wide text-zinc-600 dark:text-zinc-300">{day}</h3>
-                  <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-zinc-500 dark:bg-zinc-800 dark:text-zinc-300">
-                    J{i + 1}
-                  </span>
-                </div>
-                <ul className="space-y-2">
-                  {displayWorkouts
-                    .filter((w) => w.day_of_week === i + 1)
-                    .filter((w) =>
-                      planningQuery
-                        ? `${w.exercise} ${w.workout_type} ${w.status}`
-                            .toLowerCase()
-                            .includes(planningQuery.toLowerCase())
-                        : true,
-                    )
-                    .sort((a, b) => (a.session_time ?? "99:99").localeCompare(b.session_time ?? "99:99"))
-                    .map((w) => (
-                    <li key={w.id} className="relative rounded-lg border border-zinc-200 bg-white/90 p-2 pl-4 text-xs shadow-sm dark:border-zinc-800 dark:bg-zinc-950/50">
-                      <span className="absolute left-1.5 top-2.5 h-2 w-2 rounded-full bg-zinc-900 dark:bg-zinc-100" />
-                      {editingWorkoutId === w.id ? (
-                        <div className="space-y-1">
-                          <input
-                            className="w-full rounded-lg border border-zinc-300 bg-white px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-900"
-                            value={editingWorkoutForm.exercise}
-                            onChange={(e) =>
-                              setEditingWorkoutForm((curr) => ({ ...curr, exercise: e.target.value }))
-                            }
-                          />
-                          <div className="grid grid-cols-2 gap-1">
-                            <input
-                              className="rounded-lg border border-zinc-300 bg-white px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-900"
-                              type="time"
-                              value={editingWorkoutForm.session_time}
-                              onChange={(e) =>
-                                setEditingWorkoutForm((curr) => ({ ...curr, session_time: e.target.value }))
-                              }
-                            />
-                            <select
-                              className="rounded-lg border border-zinc-300 bg-white px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-900"
-                              value={editingWorkoutForm.workout_type}
-                              onChange={(e) =>
-                                setEditingWorkoutForm((curr) => ({
-                                  ...curr,
-                                  workout_type: e.target.value as WorkoutSession["workout_type"],
-                                }))
-                              }
-                            >
-                              <option value="push">Push</option>
-                              <option value="pull">Pull</option>
-                              <option value="legs">Legs</option>
-                              <option value="cardio">Cardio</option>
-                              <option value="other">Autre</option>
-                            </select>
-                            <input
-                              className="rounded-lg border border-zinc-300 bg-white px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-900"
-                              type="number"
-                              value={editingWorkoutForm.sets}
-                              onChange={(e) =>
-                                setEditingWorkoutForm((curr) => ({ ...curr, sets: Number(e.target.value) }))
-                              }
-                            />
-                            <input
-                              className="rounded-lg border border-zinc-300 bg-white px-2 py-1 text-xs dark:border-zinc-700 dark:bg-zinc-900"
-                              type="number"
-                              value={editingWorkoutForm.reps}
-                              onChange={(e) =>
-                                setEditingWorkoutForm((curr) => ({ ...curr, reps: Number(e.target.value) }))
-                              }
-                            />
-                          </div>
-                          <select
-                            className="w-full rounded-lg border border-zinc-300 bg-white px-2 py-1 text-xs uppercase dark:border-zinc-700 dark:bg-zinc-900"
-                            value={editingWorkoutForm.status}
-                            onChange={(e) =>
-                              setEditingWorkoutForm((curr) => ({
-                                ...curr,
-                                status: e.target.value as WorkoutSession["status"],
-                              }))
-                            }
-                          >
-                            <option value="planned">planned</option>
-                            <option value="completed">completed</option>
-                            <option value="skipped">skipped</option>
-                          </select>
-                          <div className="mt-1 flex gap-1">
-                            <button
-                              type="button"
-                              onClick={() => saveEditingWorkout(w.id)}
-                              className="rounded-full bg-zinc-900 px-2 py-0.5 text-[10px] font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900"
-                            >
-                              Enregistrer
-                            </button>
-                            <button
-                              type="button"
-                              onClick={cancelEditingWorkout}
-                              className="rounded-full border border-zinc-300 px-2 py-0.5 text-[10px] font-semibold dark:border-zinc-700"
-                            >
-                              Annuler
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          <div className="mb-1 flex items-center justify-between gap-2">
-                            <p className="font-semibold text-zinc-800 dark:text-zinc-100">{w.exercise}</p>
-                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${typeBadgeClass[w.workout_type ?? "other"]}`}>
-                              {w.workout_type ?? "other"}
-                            </span>
-                          </div>
-                          <p className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-200">{w.session_time ?? "Sans heure"}</p>
-                          <p className="text-zinc-600 dark:text-zinc-300">{w.sets} x {w.reps}</p>
-                          <div className="mt-1 flex items-center justify-between">
-                            <p className="text-[10px] font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">{w.status}</p>
-                            {canEdit ? (
-                              <button
-                                type="button"
-                                onClick={() => cycleWorkoutStatus(w)}
-                                className="rounded-full border border-zinc-300 px-2 py-0.5 text-[10px] font-semibold text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                              >
-                                Changer statut
-                              </button>
-                            ) : null}
-                          </div>
-                          {canEdit ? (
-                            <div className="mt-1 flex items-center gap-2">
-                              <button
-                                type="button"
-                                onClick={() => startEditingWorkout(w)}
-                                className="text-[10px] font-semibold text-blue-600 dark:text-blue-400"
-                              >
-                                Modifier
-                              </button>
-                              <button onClick={() => removeItem("workout_sessions", w.id)} className="text-[10px] text-rose-600">Supprimer</button>
+
+          <div className={cn(shellClass, "p-6")}>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <input value={planningQuery} onChange={(e) => setPlanningQuery(e.target.value)} placeholder="Filtrer les séances (ex: squat, push...)" className={cn(inputClass, "max-w-md")} />
+              {planningQuery ? <button type="button" onClick={() => setPlanningQuery("")} className={buttonSecondaryClass}>Effacer le filtre</button> : null}
+            </div>
+
+            <div className="mt-6 grid grid-flow-col auto-cols-[84vw] gap-4 overflow-x-auto pb-2 md:grid-flow-row md:auto-cols-auto md:grid-cols-2 xl:grid-cols-7">
+              {DAYS.map((day, i) => {
+                const filtered = displayWorkouts
+                  .filter((w) => w.day_of_week === i + 1)
+                  .filter((w) =>
+                    planningQuery
+                      ? `${w.exercise} ${w.workout_type} ${w.status}`.toLowerCase().includes(planningQuery.toLowerCase())
+                      : true,
+                  )
+                  .sort((a, b) => (a.session_time ?? "99:99").localeCompare(b.session_time ?? "99:99"));
+
+                return (
+                  <div key={day} className="min-h-72 rounded-[28px] border border-black/8 bg-white/80 p-3 dark:border-white/10 dark:bg-white/5">
+                    <div className="flex items-center justify-between gap-3 rounded-[22px] bg-black/[0.03] px-3 py-2 dark:bg-white/[0.04]">
+                      <div>
+                        <p className="text-sm font-medium text-zinc-950 dark:text-white">{day}</p>
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400">J{i + 1}</p>
+                      </div>
+                      <Pill>{filtered.length}</Pill>
+                    </div>
+                    <ul className="mt-3 space-y-3">
+                      {filtered.map((w) => (
+                        <li key={w.id} className="lift-hover rounded-[22px] border border-black/8 bg-white/88 p-3 dark:border-white/10 dark:bg-white/5">
+                          {editingWorkoutId === w.id ? (
+                            <div className="space-y-2">
+                              <input className={inputClass} value={editingWorkoutForm.exercise} onChange={(e) => setEditingWorkoutForm((curr) => ({ ...curr, exercise: e.target.value }))} />
+                              <div className="grid grid-cols-2 gap-2">
+                                <input className={inputClass} type="time" value={editingWorkoutForm.session_time} onChange={(e) => setEditingWorkoutForm((curr) => ({ ...curr, session_time: e.target.value }))} />
+                                <select className={inputClass} value={editingWorkoutForm.workout_type} onChange={(e) => setEditingWorkoutForm((curr) => ({ ...curr, workout_type: e.target.value as WorkoutSession["workout_type"] }))}>
+                                  <option value="push">Push</option>
+                                  <option value="pull">Pull</option>
+                                  <option value="legs">Legs</option>
+                                  <option value="cardio">Cardio</option>
+                                  <option value="other">Autre</option>
+                                </select>
+                                <input className={inputClass} type="number" value={editingWorkoutForm.sets} onChange={(e) => setEditingWorkoutForm((curr) => ({ ...curr, sets: Number(e.target.value) }))} />
+                                <input className={inputClass} type="number" value={editingWorkoutForm.reps} onChange={(e) => setEditingWorkoutForm((curr) => ({ ...curr, reps: Number(e.target.value) }))} />
+                              </div>
+                              <select className={inputClass} value={editingWorkoutForm.status} onChange={(e) => setEditingWorkoutForm((curr) => ({ ...curr, status: e.target.value as WorkoutSession["status"] }))}>
+                                <option value="planned">planned</option>
+                                <option value="completed">completed</option>
+                                <option value="skipped">skipped</option>
+                              </select>
+                              <div className="flex flex-wrap gap-2">
+                                <button type="button" onClick={() => saveEditingWorkout(w.id)} className={buttonPrimaryClass}>Enregistrer</button>
+                                <button type="button" onClick={cancelEditingWorkout} className={buttonSecondaryClass}>Annuler</button>
+                              </div>
                             </div>
-                          ) : null}
-                        </>
-                      )}
-                    </li>
-                  ))}
-                  {displayWorkouts.filter((w) => w.day_of_week === i + 1).length === 0 ? (
-                    <li className="rounded-lg border border-dashed border-zinc-300 bg-zinc-50 p-2 text-xs text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900/30 dark:text-zinc-500">
-                      Aucun evenement
-                    </li>
-                  ) : null}
-                </ul>
-              </div>
-            ))}
+                          ) : (
+                            <>
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <p className="text-sm font-medium text-zinc-950 dark:text-white">{w.exercise}</p>
+                                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-300">{w.session_time ?? "Sans heure"} • {w.sets} x {w.reps}</p>
+                                </div>
+                                <span className={cn("rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase", typeBadgeClass[w.workout_type ?? "other"])}>
+                                  {w.workout_type}
+                                </span>
+                              </div>
+                              <div className="mt-3 flex items-center justify-between gap-2">
+                                <p className="text-[11px] uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400">{w.status}</p>
+                                {canEdit ? (
+                                  <button type="button" onClick={() => cycleWorkoutStatus(w)} className="text-xs font-medium text-[#0071e3]">
+                                    Changer statut
+                                  </button>
+                                ) : null}
+                              </div>
+                              {canEdit ? (
+                                <div className="mt-2 flex items-center gap-3 text-xs">
+                                  <button type="button" onClick={() => startEditingWorkout(w)} className="font-medium text-zinc-700 dark:text-zinc-200">Modifier</button>
+                                  <button type="button" onClick={() => removeItem("workout_sessions", w.id)} className="font-medium text-rose-600">Supprimer</button>
+                                </div>
+                              ) : null}
+                            </>
+                          )}
+                        </li>
+                      ))}
+                      {filtered.length === 0 ? (
+                        <li className="rounded-[22px] border border-dashed border-black/12 p-5 text-sm text-zinc-500 dark:border-white/10 dark:text-zinc-400">
+                          Aucun événement
+                        </li>
+                      ) : null}
+                    </ul>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>
       )}
 
       {(activeTab === "Dashboard" || activeTab === "Poids") && (
-        <section key={`poids-${activeTab}`} className="grid animate-fade-slide gap-4 md:grid-cols-2">
-          <article className={`${panelClass} bg-gradient-to-b from-emerald-50/70 to-white dark:from-emerald-950/10 dark:to-zinc-950/50`}>
-            {title("Notes de Poids")}
-            {canEdit ? (
-              <div className="mt-3 grid gap-2 md:grid-cols-3">
-                <input className={inputClass} type="date" value={weightForm.date} onChange={(e) => setWeightForm((curr) => ({ ...curr, date: e.target.value }))} />
-                <input className={inputClass} type="number" step="0.1" value={weightForm.weight_kg} onChange={(e) => setWeightForm((curr) => ({ ...curr, weight_kg: Number(e.target.value) }))} />
-                <button onClick={addWeight} className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:brightness-110">Ajouter</button>
-                <input className={`${inputClass} md:col-span-3`} placeholder="Note optionnelle" value={weightForm.note} onChange={(e) => setWeightForm((curr) => ({ ...curr, note: e.target.value }))} />
-              </div>
-            ) : null}
-            <div className="mt-4 space-y-2">
-              {displayWeights.map((entry) => (
-                <div key={entry.id} className="rounded-xl border border-zinc-200 bg-white/70 p-3 text-sm dark:border-zinc-800 dark:bg-zinc-950/50">
-                  <p className="font-medium">{formatDateJJMMYYYY(entry.date)} - {entry.weight_kg} kg</p>
-                  <p className="text-zinc-500">{entry.note || "Sans note"}</p>
-                  {canEdit ? <button onClick={() => removeItem("weight_logs", entry.id)} className="text-xs text-rose-600">Supprimer</button> : null}
+        <section className="mt-14 space-y-5">
+          <SectionHeading
+            eyebrow="Body Metrics"
+            title="Le poids devient lisible en un regard."
+            description="Une colonne d&apos;entrées claire et une courbe de progression plus propre, dans la même grammaire visuelle."
+          />
+          <div className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+            <article className={cn(shellClass, "p-6")}>
+              <h3 className="text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">Notes de poids</h3>
+              {canEdit ? (
+                <div className="mt-6 grid gap-3 md:grid-cols-3">
+                  <input className={inputClass} type="date" value={weightForm.date} onChange={(e) => setWeightForm((curr) => ({ ...curr, date: e.target.value }))} />
+                  <input className={inputClass} type="number" step="0.1" value={weightForm.weight_kg} onChange={(e) => setWeightForm((curr) => ({ ...curr, weight_kg: Number(e.target.value) }))} />
+                  <button type="button" onClick={addWeight} className={buttonPrimaryClass}>Ajouter</button>
+                  <input className={cn(inputClass, "md:col-span-3")} placeholder="Note optionnelle" value={weightForm.note} onChange={(e) => setWeightForm((curr) => ({ ...curr, note: e.target.value }))} />
                 </div>
-              ))}
-            </div>
-          </article>
-          <ProgressChart logs={displayWeights} />
+              ) : null}
+              <div className="mt-6 space-y-3">
+                {displayWeights.map((entry) => (
+                  <div key={entry.id} className="lift-hover rounded-[22px] border border-black/8 bg-white/85 p-4 dark:border-white/10 dark:bg-white/5">
+                    <p className="text-base font-medium text-zinc-950 dark:text-white">{formatDateJJMMYYYY(entry.date)} • {entry.weight_kg} kg</p>
+                    <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-300">{entry.note || "Sans note"}</p>
+                    {canEdit ? <button type="button" onClick={() => removeItem("weight_logs", entry.id)} className="mt-2 text-xs font-medium text-rose-600">Supprimer</button> : null}
+                  </div>
+                ))}
+              </div>
+            </article>
+            <ProgressChart logs={displayWeights} />
+          </div>
         </section>
       )}
 
       {(activeTab === "Dashboard" || activeTab === "PR" || activeTab === "Mensurations") && (
-        <section key={`stats-${activeTab}`} className="grid animate-fade-slide gap-4 md:grid-cols-2">
-          {(activeTab === "Dashboard" || activeTab === "PR") && (
-            <article className={`${panelClass} bg-gradient-to-b from-violet-50/75 to-white dark:from-violet-950/10 dark:to-zinc-950/50`}>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                {title("Records Personnels")}
-                <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-semibold text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">
-                  {displayPrs.length} record(s)
-                </span>
-              </div>
-              {canEdit ? (
-                <div className="mt-4 grid gap-2 rounded-2xl border border-violet-100/80 bg-gradient-to-r from-violet-50/80 to-fuchsia-50/70 p-3 md:grid-cols-2 dark:border-violet-900/40 dark:from-violet-950/20 dark:to-fuchsia-950/20">
-                  <input className={inputClass} placeholder="Exercice" value={prForm.exercise} onChange={(e) => setPrForm((curr) => ({ ...curr, exercise: e.target.value }))} />
-                  <input className={inputClass} type="number" value={prForm.value} onChange={(e) => setPrForm((curr) => ({ ...curr, value: Number(e.target.value) }))} />
-                  <input className={inputClass} placeholder="Unité (kg/reps)" value={prForm.unit} onChange={(e) => setPrForm((curr) => ({ ...curr, unit: e.target.value }))} />
-                  <input className={inputClass} type="date" value={prForm.achieved_on} onChange={(e) => setPrForm((curr) => ({ ...curr, achieved_on: e.target.value }))} />
-                  <button onClick={addPr} className="rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110 md:col-span-2">Ajouter PR</button>
+        <section className="mt-14 space-y-5">
+          <SectionHeading
+            eyebrow="Performance"
+            title="Records et mensurations dans le même écosystème."
+            description="Une présentation plus élégante des performances pour garder une lecture premium même sur les vues utilitaires."
+          />
+          <div className="grid gap-4 lg:grid-cols-2">
+            {(activeTab === "Dashboard" || activeTab === "PR") && (
+              <article className={cn(shellClass, "p-6")}>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <h3 className="text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">Records personnels</h3>
+                  <Pill>{displayPrs.length} record(s)</Pill>
                 </div>
-              ) : null}
-              <div className="mt-4 space-y-2">
-                {displayPrs.map((record, idx) => (
-                  <div key={record.id} className="rounded-2xl border border-zinc-200 bg-white/80 p-3 text-sm shadow-sm dark:border-zinc-800 dark:bg-zinc-950/50">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="font-semibold text-zinc-800 dark:text-zinc-100">{record.exercise}</p>
-                        <p className="text-zinc-500">Atteint le {formatDateJJMMYYYY(record.achieved_on)}</p>
+                {canEdit ? (
+                  <div className="mt-6 grid gap-3 md:grid-cols-2">
+                    <input className={inputClass} placeholder="Exercice" value={prForm.exercise} onChange={(e) => setPrForm((curr) => ({ ...curr, exercise: e.target.value }))} />
+                    <input className={inputClass} type="number" value={prForm.value} onChange={(e) => setPrForm((curr) => ({ ...curr, value: Number(e.target.value) }))} />
+                    <input className={inputClass} placeholder="Unité" value={prForm.unit} onChange={(e) => setPrForm((curr) => ({ ...curr, unit: e.target.value }))} />
+                    <input className={inputClass} type="date" value={prForm.achieved_on} onChange={(e) => setPrForm((curr) => ({ ...curr, achieved_on: e.target.value }))} />
+                    <button type="button" onClick={addPr} className={cn(buttonPrimaryClass, "md:col-span-2")}>Ajouter PR</button>
+                  </div>
+                ) : null}
+                <div className="mt-6 space-y-3">
+                  {displayPrs.map((record, idx) => (
+                    <div key={record.id} className="lift-hover rounded-[24px] border border-black/8 bg-white/85 p-4 dark:border-white/10 dark:bg-white/5">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-base font-medium text-zinc-950 dark:text-white">{record.exercise}</p>
+                          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-300">Atteint le {formatDateJJMMYYYY(record.achieved_on)}</p>
+                        </div>
+                        <span className="rounded-full bg-zinc-950 px-3 py-1 text-xs font-semibold text-white dark:bg-white dark:text-zinc-950">
+                          #{idx + 1}
+                        </span>
                       </div>
-                      <span className="rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 px-2.5 py-1 text-xs font-bold text-white">
-                        #{idx + 1}
-                      </span>
+                      <div className="mt-4 flex items-center justify-between gap-3">
+                        <p className="text-2xl font-semibold tracking-tight text-[#0071e3]">{record.value} {record.unit}</p>
+                        {canEdit ? <button type="button" onClick={() => removeItem("personal_records", record.id)} className="text-xs font-medium text-rose-600">Supprimer</button> : null}
+                      </div>
                     </div>
-                    <div className="mt-2 flex items-center justify-between">
-                      <p className="text-base font-bold text-violet-700 dark:text-violet-300">
-                        {record.value} {record.unit}
-                      </p>
-                      {canEdit ? (
-                        <button onClick={() => removeItem("personal_records", record.id)} className="text-xs font-medium text-rose-600 hover:text-rose-500">
-                          Supprimer
-                        </button>
-                      ) : null}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </article>
-          )}
-          {(activeTab === "Dashboard" || activeTab === "Mensurations") && (
-            <article className={`${panelClass} bg-gradient-to-b from-amber-50/70 to-white dark:from-amber-950/10 dark:to-zinc-950/50`}>
-              {title("Mensurations")}
-              {canEdit ? (
-                <div className="mt-3 grid gap-2 md:grid-cols-2">
-                  <input className={`${inputClass} md:col-span-2`} type="date" value={measurementForm.date} onChange={(e) => setMeasurementForm((curr) => ({ ...curr, date: e.target.value }))} />
-                  <input className={inputClass} type="number" step="0.1" placeholder="Bras (cm)" value={measurementForm.biceps_cm} onChange={(e) => setMeasurementForm((curr) => ({ ...curr, biceps_cm: e.target.value }))} />
-                  <input className={inputClass} type="number" step="0.1" placeholder="Taille (cm)" value={measurementForm.waist_cm} onChange={(e) => setMeasurementForm((curr) => ({ ...curr, waist_cm: e.target.value }))} />
-                  <input className={inputClass} type="number" step="0.1" placeholder="Poitrine (cm)" value={measurementForm.chest_cm} onChange={(e) => setMeasurementForm((curr) => ({ ...curr, chest_cm: e.target.value }))} />
-                  <input className={inputClass} type="number" step="0.1" placeholder="Cuisse (cm)" value={measurementForm.thigh_cm} onChange={(e) => setMeasurementForm((curr) => ({ ...curr, thigh_cm: e.target.value }))} />
-                  <button onClick={addMeasurement} className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110 md:col-span-2">Ajouter</button>
+                  ))}
                 </div>
-              ) : null}
-              <div className="mt-4 space-y-2">
-                {displayMeasurements.map((item) => (
-                  <div key={item.id} className="rounded-xl border border-zinc-200 bg-white/70 p-3 text-sm dark:border-zinc-800 dark:bg-zinc-950/50">
-                    <p className="font-medium">{formatDateJJMMYYYY(item.date)}</p>
-                    <p className="text-zinc-500">Bras: {item.biceps_cm ?? "-"} cm | Taille: {item.waist_cm ?? "-"} cm | Poitrine: {item.chest_cm ?? "-"} cm | Cuisse: {item.thigh_cm ?? "-"} cm</p>
-                    {canEdit ? <button onClick={() => removeItem("measurements", item.id)} className="text-xs text-rose-600">Supprimer</button> : null}
+              </article>
+            )}
+
+            {(activeTab === "Dashboard" || activeTab === "Mensurations") && (
+              <article className={cn(shellClass, "p-6")}>
+                <h3 className="text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">Mensurations</h3>
+                {canEdit ? (
+                  <div className="mt-6 grid gap-3 md:grid-cols-2">
+                    <input className={cn(inputClass, "md:col-span-2")} type="date" value={measurementForm.date} onChange={(e) => setMeasurementForm((curr) => ({ ...curr, date: e.target.value }))} />
+                    <input className={inputClass} type="number" step="0.1" placeholder="Bras (cm)" value={measurementForm.biceps_cm} onChange={(e) => setMeasurementForm((curr) => ({ ...curr, biceps_cm: e.target.value }))} />
+                    <input className={inputClass} type="number" step="0.1" placeholder="Taille (cm)" value={measurementForm.waist_cm} onChange={(e) => setMeasurementForm((curr) => ({ ...curr, waist_cm: e.target.value }))} />
+                    <input className={inputClass} type="number" step="0.1" placeholder="Poitrine (cm)" value={measurementForm.chest_cm} onChange={(e) => setMeasurementForm((curr) => ({ ...curr, chest_cm: e.target.value }))} />
+                    <input className={inputClass} type="number" step="0.1" placeholder="Cuisse (cm)" value={measurementForm.thigh_cm} onChange={(e) => setMeasurementForm((curr) => ({ ...curr, thigh_cm: e.target.value }))} />
+                    <button type="button" onClick={addMeasurement} className={cn(buttonPrimaryClass, "md:col-span-2")}>Ajouter</button>
                   </div>
-                ))}
-              </div>
-            </article>
-          )}
+                ) : null}
+                <div className="mt-6 space-y-3">
+                  {displayMeasurements.map((item) => (
+                    <div key={item.id} className="lift-hover rounded-[24px] border border-black/8 bg-white/85 p-4 dark:border-white/10 dark:bg-white/5">
+                      <p className="text-base font-medium text-zinc-950 dark:text-white">{formatDateJJMMYYYY(item.date)}</p>
+                      <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-300">
+                        Bras: {item.biceps_cm ?? "-"} cm • Taille: {item.waist_cm ?? "-"} cm • Poitrine: {item.chest_cm ?? "-"} cm • Cuisse: {item.thigh_cm ?? "-"} cm
+                      </p>
+                      {canEdit ? <button type="button" onClick={() => removeItem("measurements", item.id)} className="mt-2 text-xs font-medium text-rose-600">Supprimer</button> : null}
+                    </div>
+                  ))}
+                </div>
+              </article>
+            )}
+          </div>
         </section>
       )}
     </main>
