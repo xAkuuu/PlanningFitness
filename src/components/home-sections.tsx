@@ -185,6 +185,7 @@ export function OverviewSection({
   visible,
   currentDayLabel,
   todaySessions,
+  onWorkoutSelect,
   goals,
   setGoals,
   stats,
@@ -195,6 +196,7 @@ export function OverviewSection({
   visible: boolean;
   currentDayLabel: string;
   todaySessions: WorkoutSession[];
+  onWorkoutSelect: (workoutId: string) => void;
   goals: { weightTarget: string; prExercise: string; prTarget: string; deadline: string };
   setGoals: React.Dispatch<React.SetStateAction<{ weightTarget: string; prExercise: string; prTarget: string; deadline: string }>>;
   stats: Stats;
@@ -229,7 +231,12 @@ export function OverviewSection({
               <div className="mt-4 space-y-2.5 sm:mt-6 sm:space-y-3">
               {todaySessions.length > 0 ? (
                 todaySessions.map((session) => (
-                  <div key={session.id} className="lift-hover rounded-[24px] border border-black/8 bg-white/85 p-4 dark:border-white/10 dark:bg-white/5">
+                  <button
+                    key={session.id}
+                    type="button"
+                    onClick={() => onWorkoutSelect(session.id)}
+                    className="lift-hover w-full rounded-[24px] border border-black/8 bg-white/85 p-4 text-left dark:border-white/10 dark:bg-white/5"
+                  >
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <p className="text-lg font-medium text-zinc-950 dark:text-white">{session.exercise}</p>
@@ -241,7 +248,7 @@ export function OverviewSection({
                         {session.workout_type}
                       </span>
                     </div>
-                  </div>
+                  </button>
                 ))
               ) : (
                 <div className="rounded-[24px] border border-dashed border-black/12 p-6 text-sm text-zinc-500 dark:border-white/10 dark:text-zinc-400">
@@ -288,6 +295,7 @@ export function FocusSection({
   setRestSeconds,
   startRestTimer,
   todaySessions,
+  onWorkoutSelect,
   focusSessionId,
   setFocusSessionId,
   initSetLogForSession,
@@ -306,6 +314,7 @@ export function FocusSection({
   setRestSeconds: React.Dispatch<React.SetStateAction<number>>;
   startRestTimer: (seconds: number) => void;
   todaySessions: WorkoutSession[];
+  onWorkoutSelect: (workoutId: string) => void;
   focusSessionId: string | null;
   setFocusSessionId: React.Dispatch<React.SetStateAction<string | null>>;
   initSetLogForSession: (session: WorkoutSession) => void;
@@ -369,6 +378,7 @@ export function FocusSection({
                       setFocusSessionId(session.id);
                       initSetLogForSession(session);
                       startRestTimer(90);
+                      onWorkoutSelect(session.id);
                     }}
                     className={cn(
                       "w-full rounded-[24px] border p-4 text-left transition",

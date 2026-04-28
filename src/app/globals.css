@@ -171,6 +171,37 @@ header {
   }
 }
 
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalScaleIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes sheetSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .animate-fade-slide {
   animation: fadeSlideIn 260ms ease-out;
 }
@@ -186,6 +217,18 @@ header {
 .reveal-on-scroll.is-visible {
   opacity: 1;
   transform: translateY(0) scale(1);
+}
+
+.modal-overlay {
+  animation: modalFadeIn 220ms ease-out;
+}
+
+.modal-card {
+  animation: modalScaleIn 300ms var(--ease);
+}
+
+.modal-sheet {
+  animation: sheetSlideUp 320ms var(--ease);
 }
 
 .hero-button {

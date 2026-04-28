@@ -182,6 +182,7 @@ export default function Home() {
   const [generatorType, setGeneratorType] = useState<WorkoutSession["workout_type"]>("push");
   const [generatorStartTime, setGeneratorStartTime] = useState("18:00");
   const [editingWorkoutId, setEditingWorkoutId] = useState<string | null>(null);
+  const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(null);
   const [editingWorkoutForm, setEditingWorkoutForm] = useState({
     exercise: "",
     session_time: "18:00",
@@ -261,6 +262,10 @@ export default function Home() {
     const uniqueExercises = new Set(displayWorkouts.map((w) => w.exercise)).size;
     return { total, completed, skipped, planned, completionRate, uniqueExercises };
   }, [displayWorkouts]);
+  const selectedWorkout = useMemo(
+    () => displayWorkouts.find((item) => item.id === selectedWorkoutId) ?? null,
+    [displayWorkouts, selectedWorkoutId],
+  );
 
   const loadFitnessData = useCallback(async (userId: string) => {
     const [w, we, p, m] = await Promise.all([
@@ -602,7 +607,10 @@ export default function Home() {
   async function removeItem(table: "workout_sessions" | "weight_logs" | "personal_records" | "measurements", id: string) {
     const { error } = await supabase.from(table).delete().eq("id", id);
     if (error) return setMessage(error.message);
-    if (table === "workout_sessions") setWorkouts((curr) => curr.filter((item) => item.id !== id));
+    if (table === "workout_sessions") {
+      setWorkouts((curr) => curr.filter((item) => item.id !== id));
+      if (selectedWorkoutId === id) setSelectedWorkoutId(null);
+    }
     if (table === "weight_logs") setWeights((curr) => curr.filter((item) => item.id !== id));
     if (table === "personal_records") setPrs((curr) => curr.filter((item) => item.id !== id));
     if (table === "measurements") setMeasurements((curr) => curr.filter((item) => item.id !== id));
@@ -922,6 +930,7 @@ export default function Home() {
         visible={activeTab === "Dashboard" || activeTab === "Aujourd'hui"}
         currentDayLabel={DAYS[currentDayOfWeek - 1]}
         todaySessions={todaySessions}
+        onWorkoutSelect={setSelectedWorkoutId}
         goals={goals}
         setGoals={setGoals}
         stats={stats}
@@ -938,6 +947,7 @@ export default function Home() {
         setRestSeconds={setRestSeconds}
         startRestTimer={startRestTimer}
         todaySessions={todaySessions}
+        onWorkoutSelect={setSelectedWorkoutId}
         focusSessionId={focusSessionId}
         setFocusSessionId={setFocusSessionId}
         initSetLogForSession={initSetLogForSession}
@@ -1094,7 +1104,19 @@ export default function Home() {
                     </div>
                     <ul className="mt-3 space-y-3">
                       {filtered.map((w) => (
-                        <li key={w.id} className="lift-hover rounded-[22px] border border-black/8 bg-white/88 p-3 dark:border-white/10 dark:bg-white/5">
+                        <li
+                          key={w.id}
+                          onClick={() => {
+                            if (editingWorkoutId !== w.id) {
+                              setSelectedWorkoutId(w.id);
+                            }
+                          }}
+                          className={cn(
+                            "lift-hover rounded-[22px] border border-black/8 bg-white/88 p-3 dark:border-white/10 dark:bg-white/5",
+                            editingWorkoutId !== w.id && "cursor-pointer",
+                            selectedWorkoutId === w.id && "border-[#0071e3]/40 shadow-[0_10px_30px_rgba(0,113,227,0.16)]",
+                          )}
+                        >
                           {editingWorkoutId === w.id ? (
                             <div className="space-y-2">
                               <input className={inputClass} value={editingWorkoutForm.exercise} onChange={(e) => setEditingWorkoutForm((curr) => ({ ...curr, exercise: e.target.value }))} />
@@ -1134,15 +1156,15 @@ export default function Home() {
                               <div className="mt-3 flex items-center justify-between gap-2">
                                 <p className="text-[11px] uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400">{w.status}</p>
                                 {canEdit ? (
-                                  <button type="button" onClick={() => cycleWorkoutStatus(w)} className="text-xs font-medium text-[#0071e3]">
+                                  <button type="button" onClick={(e) => { e.stopPropagation(); void cycleWorkoutStatus(w); }} className="text-xs font-medium text-[#0071e3]">
                                     Changer statut
                                   </button>
                                 ) : null}
                               </div>
                               {canEdit ? (
                                 <div className="mt-2 flex items-center gap-3 text-xs">
-                                  <button type="button" onClick={() => startEditingWorkout(w)} className="font-medium text-zinc-700 dark:text-zinc-200">Modifier</button>
-                                  <button type="button" onClick={() => removeItem("workout_sessions", w.id)} className="font-medium text-rose-600">Supprimer</button>
+                                  <button type="button" onClick={(e) => { e.stopPropagation(); startEditingWorkout(w); }} className="font-medium text-zinc-700 dark:text-zinc-200">Modifier</button>
+                                  <button type="button" onClick={(e) => { e.stopPropagation(); void removeItem("workout_sessions", w.id); }} className="font-medium text-rose-600">Supprimer</button>
                                 </div>
                               ) : null}
                             </>
@@ -1163,6 +1185,98 @@ export default function Home() {
         </section>
         </ScrollReveal>
       )}
+
+      {selectedWorkout ? (
+        <div className="modal-overlay fixed inset-0 z-[70] bg-black/35 backdrop-blur-[4px]" onClick={() => setSelectedWorkoutId(null)}>
+          <div className="hidden min-h-full items-center justify-center p-6 sm:flex">
+            <div
+              className="modal-card w-full max-w-2xl rounded-[32px] border border-black/8 bg-white/96 p-7 shadow-[0_30px_100px_rgba(0,0,0,0.22)] dark:border-white/10 dark:bg-[#111114]/96"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-400">
+                    Détail de la séance
+                  </p>
+                  <h3 className="mt-2 text-4xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+                    {selectedWorkout.exercise}
+                  </h3>
+                  <p className="mt-2 text-base text-zinc-600 dark:text-zinc-300">
+                    {DAYS[selectedWorkout.day_of_week - 1]} • {selectedWorkout.session_time ?? "Sans heure"} • {selectedWorkout.sets} x {selectedWorkout.reps}
+                  </p>
+                </div>
+                <button type="button" onClick={() => setSelectedWorkoutId(null)} className={buttonSecondaryClass}>
+                  Fermer
+                </button>
+              </div>
+
+              <div className="mt-6 grid gap-4 sm:grid-cols-3">
+                <div className="rounded-[24px] border border-black/8 bg-white/80 p-5 dark:border-white/10 dark:bg-white/5">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400">Type</p>
+                  <span className={cn("mt-3 inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase", typeBadgeClass[selectedWorkout.workout_type ?? "other"])}>
+                    {selectedWorkout.workout_type}
+                  </span>
+                </div>
+                <div className="rounded-[24px] border border-black/8 bg-white/80 p-5 dark:border-white/10 dark:bg-white/5">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400">Statut</p>
+                  <p className="mt-3 text-xl font-semibold text-zinc-950 dark:text-white">{selectedWorkout.status}</p>
+                </div>
+                <div className="rounded-[24px] border border-black/8 bg-white/80 p-5 dark:border-white/10 dark:bg-white/5">
+                  <p className="text-[11px] uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400">Volume</p>
+                  <p className="mt-3 text-xl font-semibold text-zinc-950 dark:text-white">{selectedWorkout.sets} séries • {selectedWorkout.reps} reps</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            className="modal-sheet absolute inset-x-0 bottom-0 rounded-t-[32px] border border-black/8 bg-white/96 p-5 shadow-[0_-20px_60px_rgba(0,0,0,0.18)] dark:border-white/10 dark:bg-[#111114]/96 sm:hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-400">
+                  Détail de la séance
+                </p>
+                <h3 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">
+                  {selectedWorkout.exercise}
+                </h3>
+                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+                  {DAYS[selectedWorkout.day_of_week - 1]} • {selectedWorkout.session_time ?? "Sans heure"}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedWorkoutId(null)}
+                className="rounded-full border border-black/10 px-3 py-1.5 text-xs font-medium text-zinc-700 dark:border-white/10 dark:text-zinc-200"
+              >
+                Fermer
+              </button>
+            </div>
+
+            <div className="mt-5 grid gap-3">
+              <div className="rounded-[22px] border border-black/8 bg-white/80 p-4 dark:border-white/10 dark:bg-white/5">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400">Type</p>
+                <span className={cn("mt-2 inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase", typeBadgeClass[selectedWorkout.workout_type ?? "other"])}>
+                  {selectedWorkout.workout_type}
+                </span>
+              </div>
+              <div className="rounded-[22px] border border-black/8 bg-white/80 p-4 dark:border-white/10 dark:bg-white/5">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400">Statut</p>
+                <p className="mt-2 text-lg font-semibold text-zinc-950 dark:text-white">
+                  {selectedWorkout.status}
+                </p>
+              </div>
+              <div className="rounded-[22px] border border-black/8 bg-white/80 p-4 dark:border-white/10 dark:bg-white/5">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400">Volume</p>
+                <p className="mt-2 text-lg font-semibold text-zinc-950 dark:text-white">
+                  {selectedWorkout.sets} séries • {selectedWorkout.reps} reps
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {(activeTab === "Dashboard" || activeTab === "Poids") && (
         <ScrollReveal className="mt-10 sm:mt-14" delay={80}>
