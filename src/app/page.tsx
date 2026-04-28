@@ -742,20 +742,20 @@ export default function Home() {
   }
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-7xl px-4 pb-20 pt-4 sm:px-6 lg:px-8">
+    <main className="mx-auto min-h-screen w-full max-w-7xl px-3 pb-16 pt-3 sm:px-6 sm:pb-20 sm:pt-4 lg:px-8">
       <header
         className={cn(
-          "sticky top-4 z-40 rounded-full border px-4 py-3 transition-all duration-300",
+          "sticky top-3 z-40 rounded-[28px] border px-3 py-3 transition-all duration-300 sm:top-4 sm:rounded-full sm:px-4",
           "border-black/8 bg-white/72 backdrop-blur-2xl dark:border-white/10 dark:bg-black/35",
           isScrolled && "shadow-[0_18px_60px_rgba(0,0,0,0.12)]",
         )}
       >
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="mr-auto">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="mr-auto min-w-0">
             <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-zinc-500 dark:text-zinc-400">
               Planning Fitness
             </p>
-            <p className="text-sm text-zinc-900 dark:text-white">Frontend premium inspiré d&apos;Apple</p>
+            <p className="truncate text-xs text-zinc-900 dark:text-white sm:text-sm">Frontend premium inspiré d&apos;Apple</p>
           </div>
 
           <nav className="hidden flex-wrap items-center gap-2 lg:flex">
@@ -778,7 +778,7 @@ export default function Home() {
 
           {isAdmin ? (
             <div className="flex items-center gap-2">
-              <Pill>Admin</Pill>
+              <Pill className="hidden sm:inline-flex">Admin</Pill>
               <div className="hidden rounded-full border border-black/8 bg-white/70 p-1 dark:border-white/10 dark:bg-white/5 sm:inline-flex">
                 <button
                   type="button"
@@ -801,18 +801,18 @@ export default function Home() {
                   Edition
                 </button>
               </div>
-              <button type="button" onClick={handleSignOut} className={buttonSecondaryClass}>
+              <button type="button" onClick={handleSignOut} className={cn(buttonSecondaryClass, "px-4 py-2 text-xs sm:px-5 sm:py-2.5 sm:text-sm")}>
                 Déconnexion
               </button>
             </div>
           ) : (
             <div className="relative">
-              <button type="button" onClick={() => setShowAuthMenu((curr) => !curr)} className={buttonSecondaryClass}>
+              <button type="button" onClick={() => setShowAuthMenu((curr) => !curr)} className={cn(buttonSecondaryClass, "px-4 py-2 text-xs sm:px-5 sm:py-2.5 sm:text-sm")}>
                 Connexion
               </button>
               <div
                 className={cn(
-                  "absolute right-0 top-14 z-50 w-[min(92vw,360px)] rounded-[28px] border border-black/8 bg-white/92 p-4 shadow-[0_20px_80px_rgba(0,0,0,0.16)] backdrop-blur-2xl transition",
+                  "fixed inset-x-3 top-20 z-50 rounded-[28px] border border-black/8 bg-white/92 p-4 shadow-[0_20px_80px_rgba(0,0,0,0.16)] backdrop-blur-2xl transition sm:absolute sm:inset-x-auto sm:right-0 sm:top-14 sm:w-[min(92vw,360px)]",
                   "dark:border-white/10 dark:bg-[#111114]/92",
                   showAuthMenu ? "visible translate-y-0 opacity-100" : "invisible -translate-y-2 opacity-0",
                 )}
@@ -874,15 +874,15 @@ export default function Home() {
         softPanelClass={softPanelClass}
       />
 
-      <section className={cn(shellClass, "mt-6 p-4 sm:p-5")}>
-        <div className="flex flex-wrap items-center gap-2">
+      <section className={cn(shellClass, "mt-5 p-3 sm:mt-6 sm:p-5")}>
+        <div className="no-scrollbar -mx-1 flex flex-nowrap items-center gap-2 overflow-x-auto px-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
           {TABS.map((tab) => (
             <button
               key={tab}
               type="button"
               onClick={() => setActiveTab(tab)}
               className={cn(
-                "tab-pill rounded-full px-4 py-2 text-sm transition",
+                "tab-pill shrink-0 rounded-full px-3.5 py-2 text-xs transition sm:px-4 sm:text-sm",
                 activeTab === tab
                   ? "is-active bg-zinc-950 text-white dark:bg-white dark:text-zinc-950"
                   : "border border-black/8 bg-white/70 text-zinc-600 hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:bg-white/10",
@@ -892,18 +892,18 @@ export default function Home() {
             </button>
           ))}
           {isAdmin ? (
-            <div className="ml-auto inline-flex rounded-full border border-black/8 bg-white/70 p-1 dark:border-white/10 dark:bg-white/5">
+            <div className="ml-2 inline-flex shrink-0 rounded-full border border-black/8 bg-white/70 p-1 dark:border-white/10 dark:bg-white/5 sm:ml-auto">
               <button
                 type="button"
                 onClick={() => setAdminMode("view")}
-                className={cn("rounded-full px-3 py-1.5 text-xs font-medium", adminMode === "view" && "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950")}
+                className={cn("rounded-full px-2.5 py-1.5 text-[11px] font-medium sm:px-3 sm:text-xs", adminMode === "view" && "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950")}
               >
                 Affichage
               </button>
               <button
                 type="button"
                 onClick={() => setAdminMode("edit")}
-                className={cn("rounded-full px-3 py-1.5 text-xs font-medium", adminMode === "edit" && "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950")}
+                className={cn("rounded-full px-2.5 py-1.5 text-[11px] font-medium sm:px-3 sm:text-xs", adminMode === "edit" && "bg-zinc-950 text-white dark:bg-white dark:text-zinc-950")}
               >
                 Modification
               </button>
@@ -951,7 +951,7 @@ export default function Home() {
       />
 
       {(activeTab === "Dashboard" || activeTab === "Planning") && (
-        <ScrollReveal className="mt-14" delay={60}>
+        <ScrollReveal className="mt-10 sm:mt-14" delay={60}>
         <section className="space-y-5">
           <SectionHeading
             eyebrow="Planning"
@@ -961,8 +961,8 @@ export default function Home() {
           />
 
           {canEdit ? (
-            <div className={cn(shellClass, "space-y-4 p-6")}>
-              <div className="grid gap-3 xl:grid-cols-7">
+            <div className={cn(shellClass, "space-y-4 p-4 sm:p-6")}>
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-7">
                 <select value={workoutForm.day_of_week ?? 1} onChange={(e) => setWorkoutForm((curr) => ({ ...normalizeWorkoutForm(curr), day_of_week: Number(e.target.value) }))} className={inputClass}>
                   {DAYS.map((day, i) => (
                     <option key={day} value={i + 1}>{day}</option>
@@ -982,7 +982,7 @@ export default function Home() {
                 <button type="button" onClick={addWorkout} className={buttonPrimaryClass}>Ajouter</button>
               </div>
 
-              <div className="grid gap-4 xl:grid-cols-2">
+              <div className="grid gap-3 sm:gap-4 xl:grid-cols-2">
                 <div className="rounded-[28px] border border-black/8 bg-white/75 p-4 dark:border-white/10 dark:bg-white/5">
                   <div className="flex items-center justify-between gap-3">
                     <h3 className="text-lg font-medium text-zinc-950 dark:text-white">Ajout rapide en lot</h3>
@@ -1006,9 +1006,9 @@ export default function Home() {
                     placeholder={"Une séance par ligne\n18:00 | push | Développé couché | 4 | 8\n19:00 | pull | Tractions lestées | 4 | 6"}
                     className={cn(inputClass, "mt-4 resize-y")}
                   />
-                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                  <div className="mt-4 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-xs text-zinc-500 dark:text-zinc-400">Format: HH:MM | type | exercice | sets | reps</p>
-                    <button type="button" onClick={addWorkoutsInBulk} className={buttonPrimaryClass}>Ajouter en lot</button>
+                    <button type="button" onClick={addWorkoutsInBulk} className={cn(buttonPrimaryClass, "w-full sm:w-auto")}>Ajouter en lot</button>
                   </div>
                 </div>
 
@@ -1017,7 +1017,7 @@ export default function Home() {
                   <div className="mt-4 grid gap-3">
                     <div className="rounded-[22px] border border-black/8 p-4 dark:border-white/10">
                       <p className="text-sm font-medium text-zinc-950 dark:text-white">Dupliquer un jour</p>
-                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <div className="mt-3 flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center">
                         <select value={duplicateFromDay} onChange={(e) => setDuplicateFromDay(Number(e.target.value))} className="rounded-full border border-black/10 bg-white px-3 py-2 text-xs dark:border-white/10 dark:bg-white/5">
                           {DAYS.map((day, i) => (
                             <option key={`${day}-from`} value={i + 1}>{day}</option>
@@ -1029,13 +1029,13 @@ export default function Home() {
                             <option key={`${day}-to`} value={i + 1}>{day}</option>
                           ))}
                         </select>
-                        <button type="button" onClick={duplicateDayPlan} className={buttonPrimaryClass}>Dupliquer</button>
+                        <button type="button" onClick={duplicateDayPlan} className={cn(buttonPrimaryClass, "w-full sm:w-auto")}>Dupliquer</button>
                       </div>
                     </div>
 
                     <div className="rounded-[22px] border border-black/8 p-4 dark:border-white/10">
                       <p className="text-sm font-medium text-zinc-950 dark:text-white">Générateur express</p>
-                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <div className="mt-3 flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center">
                         <select value={generatorType} onChange={(e) => setGeneratorType(e.target.value as WorkoutSession["workout_type"])} className="rounded-full border border-black/10 bg-white px-3 py-2 text-xs dark:border-white/10 dark:bg-white/5">
                           <option value="push">Push</option>
                           <option value="pull">Pull</option>
@@ -1044,7 +1044,7 @@ export default function Home() {
                           <option value="other">Autre</option>
                         </select>
                         <input type="time" value={generatorStartTime} onChange={(e) => setGeneratorStartTime(e.target.value)} className="rounded-full border border-black/10 bg-white px-3 py-2 text-xs dark:border-white/10 dark:bg-white/5" />
-                        <button type="button" onClick={generateExpressSession} className={buttonPrimaryClass}>Générer</button>
+                        <button type="button" onClick={generateExpressSession} className={cn(buttonPrimaryClass, "w-full sm:w-auto")}>Générer</button>
                       </div>
                     </div>
                   </div>
@@ -1066,13 +1066,13 @@ export default function Home() {
             </div>
           ) : null}
 
-          <div className={cn(shellClass, "p-6")}>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <input value={planningQuery} onChange={(e) => setPlanningQuery(e.target.value)} placeholder="Filtrer les séances (ex: squat, push...)" className={cn(inputClass, "max-w-md")} />
-              {planningQuery ? <button type="button" onClick={() => setPlanningQuery("")} className={buttonSecondaryClass}>Effacer le filtre</button> : null}
+          <div className={cn(shellClass, "p-4 sm:p-6")}>
+            <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+              <input value={planningQuery} onChange={(e) => setPlanningQuery(e.target.value)} placeholder="Filtrer les séances (ex: squat, push...)" className={cn(inputClass, "w-full sm:max-w-md")} />
+              {planningQuery ? <button type="button" onClick={() => setPlanningQuery("")} className={cn(buttonSecondaryClass, "w-full sm:w-auto")}>Effacer le filtre</button> : null}
             </div>
 
-            <div className="mt-6 grid grid-flow-col auto-cols-[84vw] gap-4 overflow-x-auto pb-2 md:grid-flow-row md:auto-cols-auto md:grid-cols-2 xl:grid-cols-7">
+            <div className="no-scrollbar mt-5 grid grid-flow-col auto-cols-[88vw] gap-3 overflow-x-auto pb-2 sm:mt-6 sm:auto-cols-[72vw] md:grid-flow-row md:auto-cols-auto md:grid-cols-2 md:gap-4 xl:grid-cols-7">
               {DAYS.map((day, i) => {
                 const filtered = displayWorkouts
                   .filter((w) => w.day_of_week === i + 1)
@@ -1084,7 +1084,7 @@ export default function Home() {
                   .sort((a, b) => (a.session_time ?? "99:99").localeCompare(b.session_time ?? "99:99"));
 
                 return (
-                  <div key={day} className="min-h-72 rounded-[28px] border border-black/8 bg-white/80 p-3 dark:border-white/10 dark:bg-white/5">
+                  <div key={day} className="min-h-72 rounded-[24px] border border-black/8 bg-white/80 p-3 dark:border-white/10 dark:bg-white/5 sm:rounded-[28px]">
                     <div className="flex items-center justify-between gap-3 rounded-[22px] bg-black/[0.03] px-3 py-2 dark:bg-white/[0.04]">
                       <div>
                         <p className="text-sm font-medium text-zinc-950 dark:text-white">{day}</p>
@@ -1165,22 +1165,22 @@ export default function Home() {
       )}
 
       {(activeTab === "Dashboard" || activeTab === "Poids") && (
-        <ScrollReveal className="mt-14" delay={80}>
+        <ScrollReveal className="mt-10 sm:mt-14" delay={80}>
         <section className="space-y-5">
           <SectionHeading
             eyebrow="Body Metrics"
             title="Le poids devient lisible en un regard."
             description="Une colonne d&apos;entrées claire et une courbe de progression plus propre, dans la même grammaire visuelle."
           />
-          <div className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-            <article className={cn(shellClass, "p-6")}>
-              <h3 className="text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">Notes de poids</h3>
+          <div className="grid gap-3 sm:gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+            <article className={cn(shellClass, "p-4 sm:p-6")}>
+              <h3 className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white sm:text-3xl">Notes de poids</h3>
               {canEdit ? (
-                <div className="mt-6 grid gap-3 md:grid-cols-3">
+                <div className="mt-5 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
                   <input className={inputClass} type="date" value={weightForm.date} onChange={(e) => setWeightForm((curr) => ({ ...curr, date: e.target.value }))} />
                   <input className={inputClass} type="number" step="0.1" value={weightForm.weight_kg} onChange={(e) => setWeightForm((curr) => ({ ...curr, weight_kg: Number(e.target.value) }))} />
-                  <button type="button" onClick={addWeight} className={buttonPrimaryClass}>Ajouter</button>
-                  <input className={cn(inputClass, "md:col-span-3")} placeholder="Note optionnelle" value={weightForm.note} onChange={(e) => setWeightForm((curr) => ({ ...curr, note: e.target.value }))} />
+                  <button type="button" onClick={addWeight} className={cn(buttonPrimaryClass, "sm:col-span-2 md:col-span-1")}>Ajouter</button>
+                  <input className={cn(inputClass, "sm:col-span-2 md:col-span-3")} placeholder="Note optionnelle" value={weightForm.note} onChange={(e) => setWeightForm((curr) => ({ ...curr, note: e.target.value }))} />
                 </div>
               ) : null}
               <div className="mt-6 space-y-3">
@@ -1200,27 +1200,27 @@ export default function Home() {
       )}
 
       {(activeTab === "Dashboard" || activeTab === "PR" || activeTab === "Mensurations") && (
-        <ScrollReveal className="mt-14" delay={100}>
+        <ScrollReveal className="mt-10 sm:mt-14" delay={100}>
         <section className="space-y-5">
           <SectionHeading
             eyebrow="Performance"
             title="Records et mensurations dans le même écosystème."
             description="Une présentation plus élégante des performances pour garder une lecture premium même sur les vues utilitaires."
           />
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
             {(activeTab === "Dashboard" || activeTab === "PR") && (
-              <article className={cn(shellClass, "p-6")}>
+              <article className={cn(shellClass, "p-4 sm:p-6")}>
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <h3 className="text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">Records personnels</h3>
+                  <h3 className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white sm:text-3xl">Records personnels</h3>
                   <Pill>{displayPrs.length} record(s)</Pill>
                 </div>
                 {canEdit ? (
-                  <div className="mt-6 grid gap-3 md:grid-cols-2">
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
                     <input className={inputClass} placeholder="Exercice" value={prForm.exercise} onChange={(e) => setPrForm((curr) => ({ ...curr, exercise: e.target.value }))} />
                     <input className={inputClass} type="number" value={prForm.value} onChange={(e) => setPrForm((curr) => ({ ...curr, value: Number(e.target.value) }))} />
                     <input className={inputClass} placeholder="Unité" value={prForm.unit} onChange={(e) => setPrForm((curr) => ({ ...curr, unit: e.target.value }))} />
                     <input className={inputClass} type="date" value={prForm.achieved_on} onChange={(e) => setPrForm((curr) => ({ ...curr, achieved_on: e.target.value }))} />
-                    <button type="button" onClick={addPr} className={cn(buttonPrimaryClass, "md:col-span-2")}>Ajouter PR</button>
+                    <button type="button" onClick={addPr} className={cn(buttonPrimaryClass, "sm:col-span-2")}>Ajouter PR</button>
                   </div>
                 ) : null}
                 <div className="mt-6 space-y-3">
@@ -1246,16 +1246,16 @@ export default function Home() {
             )}
 
             {(activeTab === "Dashboard" || activeTab === "Mensurations") && (
-              <article className={cn(shellClass, "p-6")}>
-                <h3 className="text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">Mensurations</h3>
+              <article className={cn(shellClass, "p-4 sm:p-6")}>
+                <h3 className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white sm:text-3xl">Mensurations</h3>
                 {canEdit ? (
-                  <div className="mt-6 grid gap-3 md:grid-cols-2">
-                    <input className={cn(inputClass, "md:col-span-2")} type="date" value={measurementForm.date} onChange={(e) => setMeasurementForm((curr) => ({ ...curr, date: e.target.value }))} />
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                    <input className={cn(inputClass, "sm:col-span-2")} type="date" value={measurementForm.date} onChange={(e) => setMeasurementForm((curr) => ({ ...curr, date: e.target.value }))} />
                     <input className={inputClass} type="number" step="0.1" placeholder="Bras (cm)" value={measurementForm.biceps_cm} onChange={(e) => setMeasurementForm((curr) => ({ ...curr, biceps_cm: e.target.value }))} />
                     <input className={inputClass} type="number" step="0.1" placeholder="Taille (cm)" value={measurementForm.waist_cm} onChange={(e) => setMeasurementForm((curr) => ({ ...curr, waist_cm: e.target.value }))} />
                     <input className={inputClass} type="number" step="0.1" placeholder="Poitrine (cm)" value={measurementForm.chest_cm} onChange={(e) => setMeasurementForm((curr) => ({ ...curr, chest_cm: e.target.value }))} />
                     <input className={inputClass} type="number" step="0.1" placeholder="Cuisse (cm)" value={measurementForm.thigh_cm} onChange={(e) => setMeasurementForm((curr) => ({ ...curr, thigh_cm: e.target.value }))} />
-                    <button type="button" onClick={addMeasurement} className={cn(buttonPrimaryClass, "md:col-span-2")}>Ajouter</button>
+                    <button type="button" onClick={addMeasurement} className={cn(buttonPrimaryClass, "sm:col-span-2")}>Ajouter</button>
                   </div>
                 ) : null}
                 <div className="mt-6 space-y-3">
